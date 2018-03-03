@@ -10,4 +10,4 @@ Video:
 ------------
 Example of current state of game as of September 2017
 
-![Video](https://github.com/bad-gal/Urbs/blob/master/Screenshots/urbs_movie.gif)
+![Video](https://bitbucket.org/bad_gal/matchthree/src/master/Screenshots/urbs_movie.gif)
