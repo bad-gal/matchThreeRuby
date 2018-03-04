@@ -13,7 +13,7 @@ require 'byebug'
 
 class Main
   MATCH_STATE = %i[auto ready swap reset user_match shuffle special].freeze
-  STAGE = %i[check match rearrange replace homeless home_found].freeze
+  STAGE = %i[check match rearrange replace].freeze
 
   def initialize(level)
     load_level(level)
@@ -33,15 +33,15 @@ class Main
   def update
     case @match_state
     when MATCH_STATE.find_index(:auto)
-      automatic_state
+      automatic_state # completed
     when MATCH_STATE.find_index(:ready)
-      ready_state
+      ready_state # partially completed
     when MATCH_STATE.find_index(:swap)
-      swap_state
+      swap_state # mostly completed
     when MATCH_STATE.find_index(:user_match)
-      user_match_state
+      user_match_state # not implemented
     when MATCH_STATE.find_index(:reset)
-      reset_state
+      reset_state # partially completed
     end
 
     @effects.each(&:update) unless @effects.empty?
@@ -70,13 +70,15 @@ class Main
     draw_buttons
   end
 
-  def urb_clicked(x, y)
+  def urb_clicked(pos_x, pos_y)
     if @match_state == MATCH_STATE.find_index(:ready) &&
        @stage == STAGE.find_index(:check)
-      button_pressed(x, y)
+      button_pressed(pos_x, pos_y)
 
       if [@pause_value, @help_value].all?(&:zero?)
-        check_if_object_selected(x, y) if [@urb_one, @urb_two].any?(&:negative?)
+        if [@urb_one, @urb_two].any?(&:negative?)
+          check_if_object_selected(pos_x, pos_y)
+        end
       end
     end
   end
@@ -115,6 +117,7 @@ class Main
   def load_tiles
     @base_tiles = Basetiles.new(@map, @map_width, @map_height)
     @cells = @base_tiles.cells
+    @obstacles = []
 
     @tile_locations = []
     @tile_image = []
@@ -163,7 +166,7 @@ class Main
     end
 
     tile_sq = @base_tiles.tile_square
-    @obstacles = []
+
     obstacle_locations.each_with_index do |ol, i|
       position = GameHelper.find_x_y_value_of_cell(obstacle_cells[i], @cells)
       @obstacles << Obstacle.new(filename, tile_sq, tile_sq, 30, 2000, true,
@@ -249,15 +252,13 @@ class Main
     when STAGE.find_index(:rearrange)
       manage_remaining_objects
     when STAGE.find_index(:replace)
-      add_new_objects # working on this next
-    when STAGE.find_index(:homeless)
-      replace_homeless_objects # not implemented
-    when STAGE.find_index(:home_found)
-      add_homeless_objects # not implemented
+      add_new_objects
     end
   end
 
-  def ready_state; end
+  def ready_state
+    @counter = 1 if @counter.zero?
+  end
 
   def swap_state
     case @stage
@@ -266,13 +267,48 @@ class Main
       @counter = 0
       @stage = STAGE.find_index(:match)
     when STAGE.find_index(:match)
-      swap_match # amend
+      swap_match # work in progress
     end
   end
 
   def user_match_state; end
 
-  def reset_state; end
+  def reset_state
+    define_swap_path if @counter.zero?
+    path_cleared if @counter == 1
+    return unless @counter == 2
+    reset_urb_selectors
+    @counter = 0
+    initial_ready
+  end
+
+  def define_swap_path
+    @urb_object1.path.concat Path.new.create_path(@urb_object1.x,
+                                                  @urb_object1.y,
+                                                  @urb_object2.x,
+                                                  @urb_object2.y)
+    @urb_object1.animate_path
+
+    @urb_object2.path.concat Path.new.create_path(@urb_object2.x,
+                                                  @urb_object2.y,
+                                                  @urb_object1.x,
+                                                  @urb_object1.y)
+    @urb_object2.animate_path
+
+    @swap_one = GameHelper.find_x_y_value_of_cell(@urb_object1.cell, @cells)
+    @swap_two = GameHelper.find_x_y_value_of_cell(@urb_object2.cell, @cells)
+    @counter = 1
+  end
+
+  def path_cleared
+    if @urb_object1.x == @swap_one.first &&
+       @urb_object1.y == @swap_one.last &&
+       @urb_object2.x == @swap_two.first && @urb_object2.y == @swap_two.last
+      @urb_object1.clear_path
+      @urb_object2.clear_path
+      @counter = 2
+    end
+  end
 
   def check_if_object_selected(mouse_x, mouse_y)
     @objects.each do |object|
@@ -299,12 +335,12 @@ class Main
           assign_selector(@selectors[1], @urb_object2)
           initial_swap
         end
-        p object.location
+        p object.location, object.cell
       else
         reset_urb_selectors
       end
     else
-      p object.location
+      p object.location, object.cell
       @urb_object1 = @objects.find { |ob| ob.location == @urb_one }
       assign_selector(@selectors[0], @urb_object1)
     end
@@ -320,6 +356,8 @@ class Main
     @urb_two = -1
     @urb_object1 = nil
     @urb_object2 = nil
+    @swap_one = nil
+    @swap_two = nil
   end
 
   def setup_objects
@@ -331,6 +369,7 @@ class Main
   end
 
   def find_matches
+    p '...finding automatic matches'
     return unless @counter.zero?
     @match_details = GameModule.find_automatic_matches(@objects, @map_width,
                                                        @map, @obstacles)
@@ -344,6 +383,7 @@ class Main
   end
 
   def generate_match_data
+    p '...generate match data'
     @matches = GameHelper.return_matches_from_hash_in_order(@match_details)
     match_cells = GameHelper.convert_matches_to_cells(@matches, @objects,
                                                       @level_manager)
@@ -371,18 +411,22 @@ class Main
   end
 
   def replace_or_rearrange
+    p '...replace or rearrange'
     @effects.clear
     @matched_copy.clear
     @counter = 0
     paths = GameHelper.available_paths(@graph, @map_width)
+    p paths.flatten
+    p paths.flatten.empty?
     return @stage = STAGE.find_index(:rearrange) unless paths.flatten.empty?
+    @homeless_objects = []
     vacant_details = GameHelper.set_new_vacancy_details(@objects,
                                                         @homeless_objects,
                                                         @map_width, @cells,
                                                         @collapsed_match,
                                                         @graph)
-    @new_vacancy_details = vacant_details[0]
-    @new_vacancies = vacant_details[1]
+    p @new_vacancy_details = vacant_details[0]
+    p @new_vacancies = vacant_details[1]
     @stage = STAGE.find_index(:replace)
   end
 
@@ -436,9 +480,10 @@ class Main
                                             @map_width, @map, @obstacles)
       p details, details2
       if details.nil? && details2.nil?
-        no_match_made
+        no_match_made(temp)
+        reset_state
       else
-        find_matches(details, details2)
+        match_found(details, details2)
       end
     else
       @counter = 0
@@ -446,7 +491,7 @@ class Main
     end
   end
 
-  def no_match_made
+  def no_match_made(temp)
     @urb_object2.location = @urb_object1.location
     @urb_object2.change_cell(@urb_object1.cell)
     @urb_object1.location = temp.location
@@ -480,16 +525,19 @@ class Main
 
   def manage_remaining_objects
     if @counter.zero?
-      @moved_urbs = identify_new_positions
-      @counter = 1
-    end
-
-    if @counter == 1
+      p '...manage remaining objects'
+      @moved_urbs = MethodLoader.identify_new_positions(@graph, @move_down,
+                                                        @move_to, @objects,
+                                                        @cells)
+      @counter = if @moved_urbs.empty?
+                   2
+                 else
+                   1
+                 end
+    elsif @counter == 1
       finished = GameHelper.move_remaining(@moved_urbs, @cells, @graph)
       @counter = 2 if finished
-    end
-
-    if @counter == 2
+    elsif @counter == 2
       puts "vacancies after remaining urbs moved down = #{@graph.get_vacancies}"
       reset_variables
       @match_details = []
@@ -498,42 +546,55 @@ class Main
       @matched_positions = []
       @starting_points = []
       @counter = 0
+      @moved_urbs.clear
       @stage = STAGE.find_index(:replace)
     end
   end
 
-  def identify_new_positions
-    temp = []
+  def add_new_objects
+    if @counter.zero?
+      vacancies = @graph.get_vacancies
+      viable = GameHelper.viable_objects(vacancies, @graph, @map_width)
+      return no_viable_objects if viable.empty?
+      @returning_objects = @objects.find_all(&:off_screen).take(viable.size)
+      MethodLoader.move_objects_en_route(viable, @objects, @graph, @cells)
+      GameHelper.position_new_objects(@returning_objects, viable, @cells)
+      MethodLoader.move_new_objects(@returning_objects, viable, @urbs_in_level,
+                                    @graph, @cells)
+      @counter = 1
+    elsif @counter == 1
+      complete = GameHelper.objects_in_place(@returning_objects)
+      @counter = 2 if complete == @returning_objects.size
 
-    @graph.get_vacancies.reverse_each do |vacancy|
-      temp << vacancy
-      cell = [vacancy[0], vacancy[1] - 1]
-      while cell[1] >= 0
-        temp << cell.dup unless @graph.get_obstacles.include?(cell)
-        change = cell[1] - 1
-        cell[1] = change
-      end
-
-      m_index = 0
-
-      cell = [vacancy[0], vacancy[1] - 1]
-      while cell[1] >= 0
-        if !@graph.get_vacancies.include?(cell) &&
-           !@move_down.include?(cell) && !@graph.get_obstacles.include?(cell)
-          @move_down << cell.dup
-          @move_to << temp[m_index].dup
-          m_index += 1
-        elsif !@graph.get_vacancies.include?(cell) &&
-              !@move_down.include?(cell) && @graph.get_obstacles.include?(cell)
-          break
-        end
-
-        change = cell[1] - 1
-        cell[1] = change
-      end
-      temp.clear
+    elsif @counter == 2
+      p 'objects moved into new positions'
+      @returning_objects.clear
+      clear_viable_variables
+      @counter = 0
     end
-    GameHelper.set_move_down_path(@move_down, @move_to, @objects, @cells)
+  end
+
+  def no_viable_objects
+    p 'no viable objects'
+    @match_details = []
+    @cell_vacancies = []
+    @collapsed_match = []
+    @matched_positions = []
+    @starting_points = []
+    @new_vacancies = []
+    initial_ready
+    @counter = 0
+  end
+
+  def clear_viable_variables
+    @match_details = []
+    @cell_vacancies = []
+    @collapsed_match = []
+    @matched_positions = []
+    @starting_points = []
+    @new_vacancies = []
+    @objects.sort_by!(&:location)
+    initial_state
   end
 
   def delete_after_use
@@ -550,5 +611,6 @@ class Main
     puts "new vacancy = #{@new_vacancies}" unless @new_vacancies.nil?
     puts "matched pos = #{@matched_positions}" unless @matched_positions.nil?
     puts "starting points = #{@starting_points}" unless @starting_points.nil?
+    puts "rtn objs = #{@returning_objects.size}" unless @returning_objects.nil?
   end
 end

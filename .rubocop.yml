@@ -17,10 +17,10 @@ Metrics/AbcSize:
   Max: 50
 
 Metrics/ClassLength:
-  Max: 500
+  Max: 700
 
 Metrics/ModuleLength:
-  Max: 300
+  Max: 700
 
 Metrics/PerceivedComplexity:
   Max: 20

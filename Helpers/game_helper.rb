@@ -163,7 +163,7 @@ module GameHelper
 
   def self.set_new_vacancy_details(objects, homeless_objects, width, cells,
                                    collapsed_matches, graph)
-    new_vacancies = graph.get_vacancies
+    p new_vacancies = graph.get_vacancies
     new_vacancy_details = []
 
     new_vacancies.each_with_index do |nv, i|
@@ -259,5 +259,59 @@ module GameHelper
     end
 
     moveable_urbs
+  end
+
+  def self.most_suitable_path(vacancy, graph, map_width)
+    paths = []
+    unless vacancy.last.zero?
+      0.upto(map_width - 1) do |x|
+        paths << graph.shortest_path(x, 0, vacancy.first, vacancy.last)
+      end
+
+      paths.reverse_each do |path|
+        paths.delete(path) unless graph.get_vacancies.include?(path.first)
+      end
+    end
+    paths.sort_by!(&:length) if paths.size > 1
+    # paths.sort_by! { |path| path.length } if paths.size > 1
+    paths.first
+  end
+
+  def self.viable_objects(vacancies, graph, map_width)
+    path = []
+    vacancies.each do |v|
+      path << if v.last.zero?
+                []
+              else
+                most_suitable_path(v, graph, map_width)
+              end
+    end
+    p path
+    viable = []
+    vacancies.each_with_index do |v, i|
+      if !path[i].empty?
+        viable << { vacancy: v, path: path[i] }
+      elsif (v[1]).zero? && !graph.get_obstacles.include?(v)
+        viable << { vacancy: v, path: [v] }
+      end
+    end
+    viable
+  end
+
+  def self.position_new_objects(returning_objects, viable, cells)
+    returning_objects.each_with_index do |object, i|
+      pos = find_x_y_value_of_cell(viable[i][:path].first, cells)
+      object.x = pos.first
+    end
+  end
+
+  def self.objects_in_place(objects)
+    complete = 0
+
+    objects.each do |object|
+      complete += 1 if object.path.size.zero?
+    end
+
+    complete
   end
 end
