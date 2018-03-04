@@ -64,9 +64,7 @@ module GameModule
       else
         result = 0
         matches.each_with_index do |_m, i|
-          if i.positive?
-            result += (matches[i - 1].to_i - matches[i].to_i)
-          end
+          result += (matches[i - 1].to_i - matches[i].to_i) if i.positive?
         end
 
         if result == (size - 1) * width
@@ -88,21 +86,19 @@ module GameModule
                                     obstacles).sort.reverse
     matches.concat add_match
 
-    if !matches.empty?
-      matches.flatten!
-      if matches.size > 3
-        intersecting_elements =
-         matches.select { |element| matches.count(element) > 1 }.uniq
-      else
-        intersecting_elements = nil
-      end
-      matches = matches.uniq.sort.reverse.flatten
+    return nil if matches.empty?
 
-      details = {matches: matches, shape: get_shape(matches, width),
-      intersects: intersecting_elements, special_type: :NONE}
-    else
-      nil
-    end
+    matches.flatten!
+    intersecting_elements = if matches.size > 3
+                              matches.select { |el| matches.count(el) > 1 }.uniq
+                            else
+                              nil
+                            end
+    matches = matches.uniq.sort.reverse.flatten
+
+    details = { matches: matches, shape: get_shape(matches, width),
+    intersects: intersecting_elements, special_type: :NONE }
+
   end
 
   def self.find_matches_by_column(objects, element, width, map, obstacles)
@@ -117,7 +113,7 @@ module GameModule
     ((rows - 1) - row).times do |i|
       if map[element + (width * (i + 1))] == 1
         loc = objects.index(
-              objects.find { |j| j.location == (element + (width * (i + 1))) }
+          objects.find { |j| j.location == (element + (width * (i + 1))) }
         )
 
         if !loc.nil?
@@ -175,7 +171,7 @@ module GameModule
     ((width - 1) - column).times do |i|
       if map[element + (i + 1)] == 1
         loc = objects.index(
-              objects.find { |j| j.location == (element + (i + 1)) }
+          objects.find { |j| j.location == (element + (i + 1)) }
         )
 
         if !loc.nil?
@@ -261,7 +257,7 @@ module GameModule
     when :pigtails
       filename = 'assets/pigtails_anim.png'
     end
-    return filename, w, h
+    [filename, w, h]
   end
 
   def self.move_objects_off_screen(matches, objects)
@@ -291,6 +287,18 @@ module GameModule
       if matches.include? obs.location
         obs.counter -= 1
         obs.change(obs.status) if obs.counter.zero?
+      end
+    end
+  end
+
+  def self.delete_obstacles(obstacles, objects, obstacle_locations)
+    return if obstacles.empty?
+
+    obstacles.delete_if do |o|
+      if o.animation_finished
+        urb = objects.find { |u| u.location == o.location }
+        urb.status = :NONE unless urb.nil?
+        obstacle_locations.delete(o.location)
       end
     end
   end
