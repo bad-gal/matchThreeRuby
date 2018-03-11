@@ -1,0 +1,20 @@
+{ "data": [
+            { "level":"Level 0", "guide1": "this is an invalid level",
+              "guide2": "" },
+            { "level":"Level 1", "guide1": "Score 1,000 points", "guide2": "" },
+            { "level":"Level 2", "guide1": "Score 2,000 points", "guide2": "" },
+            { "level":"Level 3", "guide1": "Score 3,500 points and free ",
+              "guide2": "the urbs trapped in Ice" },
+            { "level":"Level 4", "guide1": "Score 4,500 points and free ",
+              "guide2": "the urbs trapped in Ice" },
+            { "level":"Level 5", "guide1": "Score 6,000 points", "guide2": "" },
+            { "level":"Level 6", "guide1": "Score 7,000 points", "guide2": "" }
+          ],
+  "gameplay": { "title": "How to play",
+                "line1": "Use the mouse to select 2",
+                "line2": "urbs to swap either vertically",
+                "line3": "or horizontally. A match must",
+                "line4": "consist of 3 or more of the",
+                "line5": "same urbs in a row ",
+                "line6": " " }
+}
