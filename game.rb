@@ -49,9 +49,9 @@ class Game < Gosu::Window
 
   def play_game
     @screen.urb_clicked(mouse_x, mouse_y)
-    if @screen.instance_variable_get(:@owner) == -1
+    if @screen.instance_variable_get(:@exit_value) == -1
       close
-    elsif @screen.instance_variable_get(:@owner) == 1
+    elsif @screen.instance_variable_get(:@exit_value) == 1
       @screen = Level.new
     end
   end

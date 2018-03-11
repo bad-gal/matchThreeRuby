@@ -28,6 +28,7 @@ class Main
     reset_urb_selectors
     load_selectors
     reset_variables
+    load_instructions
   end
 
   def update
@@ -49,6 +50,9 @@ class Main
     @obstacles.each(&:update) unless @obstacles.empty?
 
     GameModule.delete_obstacles(@obstacles, @objects, @obstacle_locations)
+
+    @pause_value = 0 if @pause_value == 2
+    @help_value = 0 if @help_value == 2
   end
 
   def draw
@@ -88,6 +92,8 @@ class Main
   def load_foreground_image
     @bkgnd = Gosu::Image.new('assets/night_bkgnd.png')
     @font = Gosu::Font.new(16)
+    @medium_font = Gosu::Font.new(18)
+    @large_font = Gosu::Font.new(22)
     @small_font = Gosu::Font.new(12)
     @freed_sound = GameHelper.load_sounds
   end
@@ -102,7 +108,7 @@ class Main
   def initialise_buttons
     @pause_value = 0
     @help_value = 0
-    @exit_value = 0 # was owner previously
+    @exit_value = 0
   end
 
   def load_level(level)
@@ -112,6 +118,12 @@ class Main
     @map = level_tile_map[0]
     @map_width = level_tile_map[1]
     @map_height = level_tile_map[2]
+  end
+
+  def load_instructions
+    file = FileOperation.new('save/instructions.json')
+    @instructions = file.load_data
+    p @instructions["data"][@level]["guide"]
   end
 
   def load_tiles
@@ -197,29 +209,65 @@ class Main
     @continue = Image.new('assets/continue.png', 5, 230)
     @exit_level = Image.new('assets/exit_to_level.png', 5, 320)
     @pause_board = Image.new('assets/pause_board.png', 7, 90)
+    @exit_help = Image.new('assets/exit_text.png', 105, 330)
   end
 
   def draw_buttons
     @pause.draw
     @help.draw
     @board.draw
+    if @help_value == 1
+      help_drawables
+    end
+    return unless @pause_value == 1
+    @pause_board.draw
+    @exit_game.draw
+    @continue.draw
+    @exit_level.draw
+  end
+
+  def help_drawables
+    @pause_board.draw
+    @large_font.draw("Goal for Level #{@level}", 80, 110, 0, 1, 1,
+                     Gosu::Color::WHITE)
+    @medium_font.draw(@instructions["data"][@level]["guide1"], 50, 140, 0, 1,
+                      1, Gosu::Color::YELLOW)
+    @medium_font.draw(@instructions["data"][@level]["guide2"], 50, 160, 0, 1,
+                      1, Gosu::Color::YELLOW)
+    @large_font.draw(@instructions["gameplay"]["title"], 105, 190, 0, 1, 1,
+                     Gosu::Color::WHITE)
+    @medium_font.draw(@instructions["gameplay"]["line1"], 50, 220, 0, 1,
+                      1, Gosu::Color::YELLOW)
+    @medium_font.draw(@instructions["gameplay"]["line2"], 50, 240, 0, 1,
+                      1, Gosu::Color::YELLOW)
+    @medium_font.draw(@instructions["gameplay"]["line3"], 50, 260, 0, 1,
+                      1, Gosu::Color::YELLOW)
+    @medium_font.draw(@instructions["gameplay"]["line4"], 50, 280, 0, 1,
+                      1, Gosu::Color::YELLOW)
+    @medium_font.draw(@instructions["gameplay"]["line5"], 50, 300, 0, 1,
+                      1, Gosu::Color::YELLOW)
+    @medium_font.draw(@instructions["gameplay"]["line6"], 50, 320, 0, 1,
+                      1, Gosu::Color::YELLOW)
+    @exit_help.draw
   end
 
   def button_pressed(mouse_x, mouse_y)
-    if @pause.selected?(mouse_x, mouse_y) && @pause_value.zero?
+    if @pause.selected?(mouse_x, mouse_y) && @pause_value.zero? && @help_value.zero?
       p 'pause button has been pressed'
       @pause_value = 1
-    elsif @help.selected?(mouse_x, mouse_y) && @help_value.zero?
+    elsif @help.selected?(mouse_x, mouse_y) && @help_value.zero? && @pause_value.zero?
       @help_value = 1
       p 'help button has been pressed'
     end
 
     if @pause_value == 1
-      @pause_value = 0 if @continue.selected?(mouse_x, mouse_y)
+      @pause_value = 2 if @continue.selected?(mouse_x, mouse_y)
       @exit_value = 1 if @exit_level.selected?(mouse_x, mouse_y)
       @exit_value = -1 if @exit_game.selected?(mouse_x, mouse_y)
-    elsif @help_value == 1
-      @help_value = 0
+    end
+
+    if @help_value == 1
+      @help_value = 2 if @exit_help.selected?(mouse_x, mouse_y)
     end
   end
 
