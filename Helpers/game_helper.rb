@@ -289,10 +289,12 @@ module GameHelper
     p path
     viable = []
     vacancies.each_with_index do |v, i|
-      if !path[i].empty?
-        viable << { vacancy: v, path: path[i] }
-      elsif (v[1]).zero? && !graph.get_obstacles.include?(v)
-        viable << { vacancy: v, path: [v] }
+      if !path[i].nil?
+        if !path[i].empty?
+          viable << { vacancy: v, path: path[i] }
+        elsif (v[1]).zero? && !graph.get_obstacles.include?(v)
+          viable << { vacancy: v, path: [v] }
+        end
       end
     end
     viable

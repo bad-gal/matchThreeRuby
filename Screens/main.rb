@@ -34,15 +34,15 @@ class Main
   def update
     case @match_state
     when MATCH_STATE.find_index(:auto)
-      automatic_state # completed
+      automatic_state
     when MATCH_STATE.find_index(:ready)
       ready_state # partially completed
     when MATCH_STATE.find_index(:swap)
-      swap_state # mostly completed
+      swap_state
     when MATCH_STATE.find_index(:user_match)
-      user_match_state # not implemented
+      user_match_state
     when MATCH_STATE.find_index(:reset)
-      reset_state # partially completed
+      reset_state
     end
 
     @effects.each(&:update) unless @effects.empty?
@@ -252,12 +252,12 @@ class Main
   end
 
   def button_pressed(mouse_x, mouse_y)
-    if @pause.selected?(mouse_x, mouse_y) && @pause_value.zero? && @help_value.zero?
-      p 'pause button has been pressed'
+    if @pause.selected?(mouse_x, mouse_y) && @pause_value.zero? &&
+        @help_value.zero?
       @pause_value = 1
-    elsif @help.selected?(mouse_x, mouse_y) && @help_value.zero? && @pause_value.zero?
+    elsif @help.selected?(mouse_x, mouse_y) && @help_value.zero? &&
+        @pause_value.zero?
       @help_value = 1
-      p 'help button has been pressed'
     end
 
     if @pause_value == 1
@@ -315,11 +315,22 @@ class Main
       @counter = 0
       @stage = STAGE.find_index(:match)
     when STAGE.find_index(:match)
-      swap_match # work in progress
+      swap_match
     end
   end
 
-  def user_match_state; end
+  def user_match_state
+    case @stage
+    when STAGE.find_index(:check)
+      generate_match_data
+    when STAGE.find_index(:match)
+      remove_matches
+    when STAGE.find_index(:rearrange)
+      manage_remaining_objects
+    when STAGE.find_index(:replace)
+      add_new_objects
+    end
+  end
 
   def reset_state
     define_swap_path if @counter.zero?
@@ -367,7 +378,7 @@ class Main
 
   def select_urb(object)
     @urb_one == -1 ? @urb_one = object.location : @urb_two = object.location
-    if [@urb_one, @urb_two].all?(&:positive?)
+    if @urb_one > -1 && @urb_two > -1
       if (@urb_two != @urb_one) &&
          (@urb_two == @urb_one + 1 &&
          (@urb_two / @map_width) == (@urb_one / @map_width)) ||
