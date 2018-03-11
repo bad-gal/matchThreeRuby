@@ -40,6 +40,7 @@ class UrbAnimation < Animation
       @x = @path[@path.size - 1].first
       @y = @path[@path.size - 1].last
       clear_path
+      p 'path cleared'
     end
   end
 
@@ -57,6 +58,7 @@ class UrbAnimation < Animation
     return if path.empty?
     step = @path.size / 40
 
+    step = 2 if step <= 1
     (0..@path.size).step(step) do |x|
       @keyframes << @path[x]
     end
