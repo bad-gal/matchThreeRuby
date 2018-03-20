@@ -28,6 +28,7 @@ class Main
     reset_urb_selectors
     load_selectors
     reset_variables
+    load_variables
     load_instructions
   end
 
@@ -43,6 +44,8 @@ class Main
       user_match_state
     when MATCH_STATE.find_index(:reset)
       reset_state
+    when MATCH_STATE.find_index(:shuffle)
+      shuffle_state
     end
 
     @effects.each(&:update) unless @effects.empty?
@@ -58,6 +61,9 @@ class Main
   def draw
     @bkgnd.draw(0, 0, 0)
     @font.draw("Level #{@level}", 250, 5, 0, 1, 1, Gosu::Color::YELLOW)
+    @font.draw("Score #{@level_manager.scores[:score]}", 10, 5, 0, 1, 1,
+               Gosu::Color::YELLOW)
+
     @tile_image.each do |tile|
       tile[:img].draw(tile[:x], tile[:y], 0)
     end
@@ -144,13 +150,17 @@ class Main
     end
   end
 
+  def load_variables
+    @shuffling_mode = 0
+  end
+
   def reset_graph
     @graph = Graph.new(@map_width, @map_height)
     vacant_cells = []
     @cells.each do |tile|
       vacant_cells << tile[:cell] unless tile[:valid]
     end
-
+    p vacant_cells
     unless vacant_cells.empty?
       @graph.set_group_obstacles(vacant_cells)
       @graph.set_group_invisibles(vacant_cells)
@@ -291,6 +301,11 @@ class Main
     @stage = STAGE.find_index(:check)
   end
 
+  def initial_shuffle
+    @match_state = MATCH_STATE.find_index(:shuffle)
+    @stage = STAGE.find_index(:check)
+  end
+
   def automatic_state
     case @stage
     when STAGE.find_index(:check)
@@ -304,8 +319,45 @@ class Main
     end
   end
 
+  def shuffle_state
+    case @stage
+    when STAGE.find_index(:check)
+      @shuffling_mode = 1
+      @object_shuffle = GameModule.check_shuffle(@objects, @cells)
+      @stage = STAGE.find_index(:rearrange)
+    when STAGE.find_index(:rearrange)
+      complete = 0
+      @object_shuffle[0].each do |shuffle|
+        complete += 1 if shuffle.path.empty?
+      end
+
+      if complete == @object_shuffle[0].size
+        p 'shuffle complete'
+        @object_shuffle[1].each_with_index do |cell, i|
+          location = GameHelper.find_location_of_cell(cell, @cells)
+          @object_shuffle[0][i].location = location
+          @object_shuffle[0][i].change_cell(cell)
+        end
+        @objects.sort_by! { |i| i.location }
+        @shuffling_mode = 0
+        @shuffle_timer = 0
+        @counter = 0
+        initial_state
+      end
+    end
+  end
+
   def ready_state
-    @counter = 1 if @counter.zero?
+    case @stage
+    when STAGE.find_index(:check)
+      potential_matches = MethodLoader.all_potential_matches(@objects, @obstacles,
+                                                             @map_width,
+                                                             @map)
+      if potential_matches.empty?
+        initial_shuffle
+        @shuffle_timer = Gosu.milliseconds + 1200
+      end
+    end
   end
 
   def swap_state
@@ -613,7 +665,7 @@ class Main
   def add_new_objects
     if @counter.zero?
       vacancies = @graph.get_vacancies
-      viable = GameHelper.viable_objects(vacancies, @graph, @map_width)
+      p viable = GameHelper.viable_objects(vacancies, @graph, @map_width)
       return no_viable_objects if viable.empty?
       @returning_objects = @objects.find_all(&:off_screen).take(viable.size)
       MethodLoader.move_objects_en_route(viable, @objects, @graph, @cells)
@@ -656,6 +708,21 @@ class Main
     initial_state
   end
 
+  def check_shuffle(objects, cells)
+    object_shuffle = GameModule::objects_to_shuffle(objects)
+
+    object_shuffle.each do |obj|
+      destination = GameModule::find_x_y_value_of_cell(obj[1], cells)
+      if !(obj[0].x == destination.first && obj[0].y == destination.last)
+        obj[0].path.concat Path.new.create_path(obj[0].x, obj[0].y,
+                                                destination.first,
+                                                destination.last)
+        obj[0].animate_path
+      end
+    end
+    object_shuffle
+  end
+
   def delete_after_use
     puts "move down = #{@move_down}" unless @move_down.nil?
     puts "move to = #{@move_to}" unless @move_to.nil?
@@ -671,5 +738,7 @@ class Main
     puts "matched pos = #{@matched_positions}" unless @matched_positions.nil?
     puts "starting points = #{@starting_points}" unless @starting_points.nil?
     puts "rtn objs = #{@returning_objects.size}" unless @returning_objects.nil?
+    # @shuffling_mode
+    # @shuffle_timer
   end
 end

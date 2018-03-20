@@ -273,7 +273,6 @@ module GameHelper
       end
     end
     paths.sort_by!(&:length) if paths.size > 1
-    # paths.sort_by! { |path| path.length } if paths.size > 1
     paths.first
   end
 
@@ -286,18 +285,35 @@ module GameHelper
                 most_suitable_path(v, graph, map_width)
               end
     end
-    p path
     viable = []
     vacancies.each_with_index do |v, i|
       if !path[i].nil?
         if !path[i].empty?
-          viable << { vacancy: v, path: path[i] }
+          viable << { vacancy: v, path: [path[i].last] }
         elsif (v[1]).zero? && !graph.get_obstacles.include?(v)
           viable << { vacancy: v, path: [v] }
         end
       end
     end
+
+    # must do check if column is removed and has invisible cells above
+    if viable.empty?
+      p 'checking if there is a viable exception...'
+      exception = viable_exceptions(vacancies, graph)
+      viable = exception unless exception.empty?
+    end
     viable
+  end
+
+  def self.viable_exceptions(vacancies, graph)
+    temp = []
+    invisibles = graph.get_invisibles
+    vacancies.each do |vacancy|
+      invisibles.each do |inv|
+          temp << { vacancy: vacancy, path: [vacancy] } if vacancy.first == inv.first && inv.last < vacancy.last
+      end
+    end
+    temp.uniq
   end
 
   def self.position_new_objects(returning_objects, viable, cells)
