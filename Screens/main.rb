@@ -60,8 +60,9 @@ class Main
 
   def draw
     @bkgnd.draw(0, 0, 0)
-    @font.draw("Level #{@level}", 250, 5, 0, 1, 1, Gosu::Color::YELLOW)
-    @font.draw("Score #{@level_manager.scores[:score]}", 10, 5, 0, 1, 1,
+    @font.draw("Level: #{@level}", 10, 455, 0, 1, 1, Gosu::Color::YELLOW)
+    @font.draw("Moves: #{@level_manager.scores[:moves]}", 250, 5, 0, 1, 1, Gosu::Color::YELLOW)
+    @font.draw("Score: #{@level_manager.scores[:score]}", 10, 5, 0, 1, 1,
                Gosu::Color::YELLOW)
 
     @tile_image.each do |tile|
@@ -212,7 +213,6 @@ class Main
   def load_gui
     @pause = Image.new('Assets/pause.png', 270, 30)
     @help = Image.new('Assets/help.png', 6, 30)
-    @board = Image.new('Assets/board3.png', 0, 435)
     @victory = Image.new('assets/victory.png', 10, 200)
     @failed = Image.new('assets/failed.png', 10, 200)
     @exit_game = Image.new('assets/exit_game.png', 5, 150)
@@ -225,7 +225,6 @@ class Main
   def draw_buttons
     @pause.draw
     @help.draw
-    @board.draw
     if @help_value == 1
       help_drawables
     end
@@ -428,35 +427,6 @@ class Main
     end
   end
 
-  def select_urb(object)
-    @urb_one == -1 ? @urb_one = object.location : @urb_two = object.location
-    if @urb_one > -1 && @urb_two > -1
-      if (@urb_two != @urb_one) &&
-         (@urb_two == @urb_one + 1 &&
-         (@urb_two / @map_width) == (@urb_one / @map_width)) ||
-         (@urb_two == @urb_one - 1 && (@urb_two / @map_width) ==
-         (@urb_one / @map_width)) || (@urb_two ==
-         (@urb_one + @map_width) && @urb_two < @map.size) ||
-         (@urb_two == @urb_one - @map_width && @urb_two >= 0)
-        @urb_object2 = @objects.find { |jt| jt.location == @urb_two }
-
-        if @urb_object1.type == @urb_object2.type
-          reset_urb_selectors
-        else
-          assign_selector(@selectors[1], @urb_object2)
-          initial_swap
-        end
-        p object.location, object.cell
-      else
-        reset_urb_selectors
-      end
-    else
-      p object.location, object.cell
-      @urb_object1 = @objects.find { |ob| ob.location == @urb_one }
-      assign_selector(@selectors[0], @urb_object1)
-    end
-  end
-
   def assign_selector(selector, object)
     selector.x = object.x
     selector.y = object.y
@@ -595,6 +565,7 @@ class Main
         reset_state
       else
         match_found(details, details2)
+        @level_manager.deduct_move
       end
     else
       @counter = 0
@@ -740,5 +711,34 @@ class Main
     puts "rtn objs = #{@returning_objects.size}" unless @returning_objects.nil?
     # @shuffling_mode
     # @shuffle_timer
+  end
+
+  def select_urb(object)
+    @urb_one == -1 ? @urb_one = object.location : @urb_two = object.location
+    if @urb_one > -1 && @urb_two > -1
+      if (@urb_two != @urb_one) &&
+         (@urb_two == @urb_one + 1 &&
+         (@urb_two / @map_width) == (@urb_one / @map_width)) ||
+         (@urb_two == @urb_one - 1 && (@urb_two / @map_width) ==
+         (@urb_one / @map_width)) || (@urb_two ==
+         (@urb_one + @map_width) && @urb_two < @map.size) ||
+         (@urb_two == @urb_one - @map_width && @urb_two >= 0)
+        @urb_object2 = @objects.find { |jt| jt.location == @urb_two }
+
+        if @urb_object1.type == @urb_object2.type
+          reset_urb_selectors
+        else
+          assign_selector(@selectors[1], @urb_object2)
+          initial_swap
+        end
+        p object.location, object.cell
+      else
+        reset_urb_selectors
+      end
+    else
+      p object.location, object.cell
+      @urb_object1 = @objects.find { |ob| ob.location == @urb_one }
+      assign_selector(@selectors[0], @urb_object1)
+    end
   end
 end
