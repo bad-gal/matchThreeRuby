@@ -714,31 +714,33 @@ class Main
   end
 
   def select_urb(object)
-    @urb_one == -1 ? @urb_one = object.location : @urb_two = object.location
-    if @urb_one > -1 && @urb_two > -1
-      if (@urb_two != @urb_one) &&
-         (@urb_two == @urb_one + 1 &&
-         (@urb_two / @map_width) == (@urb_one / @map_width)) ||
-         (@urb_two == @urb_one - 1 && (@urb_two / @map_width) ==
-         (@urb_one / @map_width)) || (@urb_two ==
-         (@urb_one + @map_width) && @urb_two < @map.size) ||
-         (@urb_two == @urb_one - @map_width && @urb_two >= 0)
-        @urb_object2 = @objects.find { |jt| jt.location == @urb_two }
+    if @level_manager.scores[:moves] > 0
+      @urb_one == -1 ? @urb_one = object.location : @urb_two = object.location
+      if @urb_one > -1 && @urb_two > -1
+        if (@urb_two != @urb_one) &&
+           (@urb_two == @urb_one + 1 &&
+           (@urb_two / @map_width) == (@urb_one / @map_width)) ||
+           (@urb_two == @urb_one - 1 && (@urb_two / @map_width) ==
+           (@urb_one / @map_width)) || (@urb_two ==
+           (@urb_one + @map_width) && @urb_two < @map.size) ||
+           (@urb_two == @urb_one - @map_width && @urb_two >= 0)
+          @urb_object2 = @objects.find { |jt| jt.location == @urb_two }
 
-        if @urb_object1.type == @urb_object2.type
-          reset_urb_selectors
+          if @urb_object1.type == @urb_object2.type
+            reset_urb_selectors
+          else
+            assign_selector(@selectors[1], @urb_object2)
+            initial_swap
+          end
+          p object.location, object.cell
         else
-          assign_selector(@selectors[1], @urb_object2)
-          initial_swap
+          reset_urb_selectors
         end
-        p object.location, object.cell
       else
-        reset_urb_selectors
+        p object.location, object.cell
+        @urb_object1 = @objects.find { |ob| ob.location == @urb_one }
+        assign_selector(@selectors[0], @urb_object1)
       end
-    else
-      p object.location, object.cell
-      @urb_object1 = @objects.find { |ob| ob.location == @urb_one }
-      assign_selector(@selectors[0], @urb_object1)
     end
   end
 end
