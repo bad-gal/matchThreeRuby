@@ -30,24 +30,24 @@ class Levelmanager
 
   def score_setter(args = {})
     @scores[:moves] = args[:moves] if args.key?(:moves)
-    @scores[:minScore] = args[:minScore] if args.key?(:minScore)
+    @scores[:min_score] = args[:min_score] if args.key?(:min_score)
     @scores[:glass] = args[:glass] if args.key?(:glass)
   end
 
   def level_creator
     case @level
     when 1
-      score_setter(moves: 5, minScore: 1000)
+      score_setter(moves: 5, min_score: 1000)
     when 2
-      score_setter(moves: 8, minScore: 2000)
+      score_setter(moves: 8, min_score: 2000)
     when 3
-      score_setter(moves: 15, minScore: 3500, glass: 5)
+      score_setter(moves: 15, min_score: 3500, glass: 5)
     when 4
-      score_setter(moves: 20, minScore: 4500, glass: 6)
+      score_setter(moves: 20, min_score: 4500, glass: 6)
     when 5
-      score_setter(moves: 100, minScore: 6000)
+      score_setter(moves: 100, min_score: 6000)
     when 6
-      score_setter(moves: 100, minScore: 7000)
+      score_setter(moves: 100, min_score: 7000)
     when 7
       score_setter(moves: 100, glass: 5)
     when 8
@@ -57,8 +57,21 @@ class Levelmanager
     when 10
       score_setter(moves: 100, glass: 13)
     when 11
-      score_setter(moves: 100, minScore: 7000)
+      score_setter(moves: 100, min_score: 7000)
     end
+  end
+
+  def level_completed?
+    case @level
+    when 1, 2, 5, 6, 11
+      if @scores[:score] >= @scores[:min_score]
+       return :success
+      elsif @scores[:moves] == 0
+       return :fail
+      end
+    when 3, 4, 7, 8, 9, 10
+    end
+    :pending
   end
 
   def move_level?

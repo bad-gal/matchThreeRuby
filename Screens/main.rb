@@ -349,6 +349,7 @@ class Main
   def ready_state
     case @stage
     when STAGE.find_index(:check)
+      @level_manager.level_completed?
       potential_matches = MethodLoader.all_potential_matches(@objects, @obstacles,
                                                              @map_width,
                                                              @map)
