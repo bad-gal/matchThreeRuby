@@ -21,13 +21,14 @@ module GameHelper
     match_cells
   end
 
-  def self.remove_broken_obstacles(matches, obstacles, graph)
+  def self.remove_broken_obstacles(matches, obstacles, graph, level_manager)
     matches.each do |matched|
       matched.each do |m|
         found = obstacles.find { |o| o.location == m }
         next if found.nil?
         if found.counter <= 0
           graph.set_obstacle(found.cell.first, found.cell.last, false)
+          level_manager.add_obstacle_score
         end
       end
     end

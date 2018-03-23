@@ -61,7 +61,7 @@ class Main
   def draw
     @bkgnd.draw(0, 0, 0)
     @font.draw("Level: #{@level}", 10, 455, 0, 1, 1, Gosu::Color::YELLOW)
-    @font.draw("Moves: #{@level_manager.scores[:moves]}", 250, 5, 0, 1, 1, Gosu::Color::YELLOW)
+    @font.draw("Moves: #{@level_manager.scores[:moves]}", 230, 5, 0, 1, 1, Gosu::Color::YELLOW)
     @font.draw("Score: #{@level_manager.scores[:score]}", 10, 5, 0, 1, 1,
                Gosu::Color::YELLOW)
 
@@ -350,7 +350,8 @@ class Main
     case @stage
     when STAGE.find_index(:check)
       @level_manager.level_completed?
-      potential_matches = MethodLoader.all_potential_matches(@objects, @obstacles,
+
+      p potential_matches = MethodLoader.all_potential_matches(@objects, @obstacles,
                                                              @map_width,
                                                              @map)
       if potential_matches.empty?
@@ -469,7 +470,8 @@ class Main
     @matches = GameHelper.return_matches_from_hash_in_order(@match_details)
     match_cells = GameHelper.convert_matches_to_cells(@matches, @objects,
                                                       @level_manager)
-    GameHelper.remove_broken_obstacles(@matches, @obstacles, @graph)
+    GameHelper.remove_broken_obstacles(@matches, @obstacles, @graph,
+                                       @level_manager)
 
     @cell_vacancies = []
     match_cells.each { |mc| @cell_vacancies << @graph.set_group_vacancies(mc) }

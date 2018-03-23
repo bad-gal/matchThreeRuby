@@ -41,7 +41,7 @@ class Levelmanager
     when 2
       score_setter(moves: 8, min_score: 2000)
     when 3
-      score_setter(moves: 15, min_score: 3500, glass: 5)
+      score_setter(moves: 15, min_score: 3000, glass: 5)
     when 4
       score_setter(moves: 20, min_score: 4500, glass: 6)
     when 5
@@ -187,6 +187,10 @@ class Levelmanager
     elsif size > 3
       @scores[:score] += (basic + bonus)
     end
+  end
+
+  def add_obstacle_score
+    @scores[:score] += 200
   end
 
   def add_to_urb_counter(type)
