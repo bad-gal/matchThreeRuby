@@ -69,7 +69,18 @@ class Levelmanager
       elsif @scores[:moves] == 0
        return :fail
       end
-    when 3, 4, 7, 8, 9, 10
+    when 7, 8, 9, 10
+      if @scores[:glass_counter] ==  @scores[:glass]
+        return :success
+      elsif @scores[:moves] == 0
+        return :fail
+      end
+    when 3, 4
+      if @scores[:glass_counter] == @scores[:glass] && @scores[:score] >= @scores[min_score]
+        return :success
+      elsif @scores[:moves] == 0
+        return :fail
+      end
     end
     :pending
   end
