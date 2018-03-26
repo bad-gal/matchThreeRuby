@@ -30,6 +30,7 @@ class Main
     reset_variables
     load_variables
     load_instructions
+    @to_test = 0
   end
 
   def update
@@ -161,7 +162,7 @@ class Main
     @cells.each do |tile|
       vacant_cells << tile[:cell] unless tile[:valid]
     end
-    p vacant_cells
+
     unless vacant_cells.empty?
       @graph.set_group_obstacles(vacant_cells)
       @graph.set_group_invisibles(vacant_cells)
@@ -298,6 +299,7 @@ class Main
   def initial_ready
     @match_state = MATCH_STATE.find_index(:ready)
     @stage = STAGE.find_index(:check)
+    @to_test = 0
   end
 
   def initial_shuffle
@@ -349,11 +351,17 @@ class Main
   def ready_state
     case @stage
     when STAGE.find_index(:check)
-      @level_manager.level_completed?
+      # if @level_manager.level_completed?
+      #   p "success"
+      # end
 
-      p potential_matches = MethodLoader.all_potential_matches(@objects, @obstacles,
-                                                             @map_width,
-                                                             @map)
+      potential_matches = MethodLoader.all_potential_matches(@objects, @obstacles, @map_width, @map)
+
+      if @to_test.zero?
+        p "real potential matches =>", potential_matches
+        @to_test = 1
+      end
+
       if potential_matches.empty?
         initial_shuffle
         @shuffle_timer = Gosu.milliseconds + 1200
@@ -500,8 +508,6 @@ class Main
     @matched_copy.clear
     @counter = 0
     paths = GameHelper.available_paths(@graph, @map_width)
-    p paths.flatten
-    p paths.flatten.empty?
     return @stage = STAGE.find_index(:rearrange) unless paths.flatten.empty?
     @homeless_objects = []
     vacant_details = GameHelper.set_new_vacancy_details(@objects,
@@ -509,8 +515,8 @@ class Main
                                                         @map_width, @cells,
                                                         @collapsed_match,
                                                         @graph)
-    p @new_vacancy_details = vacant_details[0]
-    p @new_vacancies = vacant_details[1]
+    @new_vacancy_details = vacant_details[0]
+    @new_vacancies = vacant_details[1]
     @stage = STAGE.find_index(:replace)
   end
 
@@ -611,9 +617,7 @@ class Main
   def manage_remaining_objects
     if @counter.zero?
       p '...manage remaining objects'
-      @moved_urbs = MethodLoader.identify_new_positions(@graph, @move_down,
-                                                        @move_to, @objects,
-                                                        @cells)
+      @moved_urbs = MethodLoader.identify_new_positions(@graph, @move_down, @move_to, @objects, @cells)
       @counter = if @moved_urbs.empty?
                    2
                  else
@@ -640,10 +644,25 @@ class Main
     if @counter.zero?
       vacancies = @graph.get_vacancies
       p viable = GameHelper.viable_objects(vacancies, @graph, @map_width)
+      p "viable size ->", viable.size
       return no_viable_objects if viable.empty?
       @returning_objects = @objects.find_all(&:off_screen).take(viable.size)
-      MethodLoader.move_objects_en_route(viable, @objects, @graph, @cells)
-      GameHelper.position_new_objects(@returning_objects, viable, @cells)
+      p @returning_objects.size
+      blocking_urbs = MethodLoader.show_blocking_objects(viable, @graph)
+      p "viable size ->", viable.size
+      unless blocking_urbs.empty?
+        p "something needs to happen here"
+        affected = MethodLoader.affected_paths(viable, blocking_urbs.reverse)
+        p "affected -> ", affected
+        MethodLoader.move_blocking_urbs(affected, blocking_urbs.reverse, @objects, @cells, @graph)
+        # MethodLoader.move_objects_en_route(viable, @objects, @graph, @cells)
+        # MethodLoader.change_route(viable, @objects, @cells, @graph, @returning_objects)
+        p "new vacancies -> #{@graph.get_vacancies}"
+        p viable = GameHelper.viable_objects(@graph.get_vacancies, @graph, @map_width)
+      end
+
+      # GameHelper.position_new_objects(@returning_objects, viable, @cells)
+
       MethodLoader.move_new_objects(@returning_objects, viable, @urbs_in_level,
                                     @graph, @cells)
       @counter = 1
@@ -735,12 +754,12 @@ class Main
             assign_selector(@selectors[1], @urb_object2)
             initial_swap
           end
-          p object.location, object.cell
+          p "#{object.location}, #{object.cell}, #{object.active}, #{object.type}"
         else
           reset_urb_selectors
         end
       else
-        p object.location, object.cell
+        p "#{object.location}, #{object.cell}, #{object.active}, #{object.type}"
         @urb_object1 = @objects.find { |ob| ob.location == @urb_one }
         assign_selector(@selectors[0], @urb_object1)
       end

@@ -66,6 +66,7 @@ module GameHelper
   end
 
   def self.find_x_y_value_of_cell(cell, cells)
+    return [] if cell.empty?
     node = cells.find { |c| c[:cell] == cell }
     node[:position]
   end
@@ -156,9 +157,9 @@ module GameHelper
     elsif primary_direction.uniq.length > 1
       direction = :multiple
     end
-    puts "direction = #{direction}"
-    puts "vacancy_columns = #{vacancy_columns}"
-    puts "primary_direction = #{primary_direction}"
+    # puts "direction = #{direction}"
+    # puts "vacancy_columns = #{vacancy_columns}"
+    # puts "primary_direction = #{primary_direction}"
     direction
   end
 
@@ -268,11 +269,12 @@ module GameHelper
       0.upto(map_width - 1) do |x|
         paths << graph.shortest_path(x, 0, vacancy.first, vacancy.last)
       end
-
       paths.reverse_each do |path|
-        paths.delete(path) unless graph.get_vacancies.include?(path.first)
+        # p "suitable paths", path
+        paths.delete(path) unless graph.get_vacancies.include?(path.last)
       end
     end
+
     paths.sort_by!(&:length) if paths.size > 1
     paths.first
   end
@@ -286,11 +288,15 @@ module GameHelper
                 most_suitable_path(v, graph, map_width)
               end
     end
+
+    p "viable objects paths ->", path
     viable = []
     vacancies.each_with_index do |v, i|
       if !path[i].nil?
         if !path[i].empty?
-          viable << { vacancy: v, path: [path[i].last] }
+          p "clear path thru is #{path}"
+          viable << { vacancy: v, path: path[i] }
+          # viable << { vacancy: v, path: [path[i].last] }
         elsif (v[1]).zero? && !graph.get_obstacles.include?(v)
           viable << { vacancy: v, path: [v] }
         end
@@ -314,6 +320,7 @@ module GameHelper
           temp << { vacancy: vacancy, path: [vacancy] } if vacancy.first == inv.first && inv.last < vacancy.last
       end
     end
+    # should be a way to pass empty paths into an array via clear paths only
     temp.uniq
   end
 

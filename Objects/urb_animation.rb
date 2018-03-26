@@ -40,7 +40,6 @@ class UrbAnimation < Animation
       @x = @path[@path.size - 1].first
       @y = @path[@path.size - 1].last
       clear_path
-      p 'path cleared'
     end
   end
 

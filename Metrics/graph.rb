@@ -218,6 +218,19 @@ class Graph
     route
   end
 
+  def sort_paths(paths)
+    paths.each_with_index do |path, i|
+      a = i + 1
+      (i+1).upto(paths.size - 1) do
+        if paths[a].include?(path.last)
+          paths[i], paths[a] = paths[a], paths[i]
+        end
+        a += 1
+      end
+    end
+    return paths
+  end
+
   def get_graph
     @grid.each do |grid|
       grid.each do |g|

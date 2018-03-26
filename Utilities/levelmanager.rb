@@ -41,7 +41,7 @@ class Levelmanager
     when 2
       score_setter(moves: 8, min_score: 2000)
     when 3
-      score_setter(moves: 15, min_score: 3000, glass: 5)
+      score_setter(moves: 15, glass: 5)
     when 4
       score_setter(moves: 20, min_score: 4500, glass: 6)
     when 5
@@ -55,7 +55,7 @@ class Levelmanager
     when 9
       score_setter(moves: 100, glass: 8)
     when 10
-      score_setter(moves: 100, glass: 13)
+      score_setter(moves: 100, min_score: 5500, glass: 13)
     when 11
       score_setter(moves: 100, min_score: 7000)
     end
@@ -69,13 +69,13 @@ class Levelmanager
       elsif @scores[:moves] == 0
        return :fail
       end
-    when 7, 8, 9, 10
+    when 3, 7, 8, 9
       if @scores[:glass_counter] ==  @scores[:glass]
         return :success
       elsif @scores[:moves] == 0
         return :fail
       end
-    when 3, 4
+    when 4, 10
       if @scores[:glass_counter] == @scores[:glass] && @scores[:score] >= @scores[min_score]
         return :success
       elsif @scores[:moves] == 0
@@ -133,7 +133,7 @@ class Levelmanager
     case @level
     when 1
       [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-    when 2
+    when 2, 7
       [0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1,
        0]
     when 3, 10
@@ -148,9 +148,6 @@ class Levelmanager
     when 6
       [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
        1]
-    when 7
-      [0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1,
-       0]
     when 8
       [1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
        1, 1, 0, 1, 0, 1]
