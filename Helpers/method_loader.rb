@@ -78,6 +78,13 @@ module MethodLoader
        1, 2, 3, 4, 5, 5,
        4, 4, 4, 3,
        1, 4, 5, 1]
+
+    when 6
+       [4, 4, 6, 3, 2,
+        4, 2, 7, 3, 4,
+        3, 3,
+        2, 7, 6, 7, 3,
+        7, 2, 2, 4, 6]
     end
   end
 
@@ -214,6 +221,19 @@ module MethodLoader
 
   def self.blocking_objects(path, graph)
     p path - graph.get_vacancies
+  end
+
+  def self.sort_paths(affected)
+    affected.each_with_index do |path, i|
+      a = i + 1
+      (i+1).upto(affected.size - 1) do
+        if affected[a][:path].include?(path[:path].last)
+          affected[i], affected[a] = affected[a], affected[i]
+        end
+        a += 1
+      end
+    end
+    return affected
   end
 
   # only move the blocked objects -> [[2, 3], [2, 2], [2, 1]], affected -> subset of viable

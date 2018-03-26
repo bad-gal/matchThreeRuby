@@ -654,11 +654,13 @@ class Main
         p "something needs to happen here"
         affected = MethodLoader.affected_paths(viable, blocking_urbs.reverse)
         p "affected -> ", affected
+        p MethodLoader.sort_paths(affected)
         MethodLoader.move_blocking_urbs(affected, blocking_urbs.reverse, @objects, @cells, @graph)
         # MethodLoader.move_objects_en_route(viable, @objects, @graph, @cells)
         # MethodLoader.change_route(viable, @objects, @cells, @graph, @returning_objects)
         p "new vacancies -> #{@graph.get_vacancies}"
         p viable = GameHelper.viable_objects(@graph.get_vacancies, @graph, @map_width)
+        byebug
       end
 
       # GameHelper.position_new_objects(@returning_objects, viable, @cells)
