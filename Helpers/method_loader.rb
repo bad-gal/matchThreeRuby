@@ -80,11 +80,16 @@ module MethodLoader
        1, 4, 5, 1]
 
     when 6
+      # [4, 4, 6, 3, 2,
+      #  4, 2, 7, 3, 4,
+      #  3, 6,
+      #  2, 7, 6, 6, 3,
+      #  2, 4, 2, 2, 7]
        [4, 4, 6, 3, 2,
         4, 2, 7, 3, 4,
         3, 3,
-        2, 7, 6, 7, 3,
-        7, 2, 2, 4, 6]
+        2, 7, 6, 6, 6,
+        2, 2, 2, 2, 7]
     end
   end
 
@@ -200,10 +205,13 @@ module MethodLoader
 
     viable_objects.reverse_each do |obj|
       "blocking objects = #{obj[:path]} and #{graph.get_vacancies}"
-      blocking << obj[:path] - graph.get_vacancies
+      blocked = obj[:path] - graph.get_vacancies
+      blocked.each do |bl|
+        blocking << bl
+      end
     end
-    p "blocking objects -> ", blocking.reject(&:empty?).uniq
-    blocking.reject(&:empty?).uniq.flatten(1)
+    p "blocking objects -> ", blocking.reject(&:empty?).uniq.sort.reverse
+    blocking.reject(&:empty?).uniq.sort.reverse#flatten(1)
   end
 
   # which paths have the blocking objects
@@ -217,10 +225,6 @@ module MethodLoader
       end
     end
     affected
-  end
-
-  def self.blocking_objects(path, graph)
-    p path - graph.get_vacancies
   end
 
   def self.sort_paths(affected)
@@ -240,63 +244,36 @@ module MethodLoader
   def self.move_blocking_urbs(affected, blocking_urbs, objects, cells, graph)
     p "...move_blocking_urbs"
     blocking_urbs.each do |blocking|
+      p "blocking #{blocking}"
       p viable = affected.find{ |obj| obj[:path].include?(blocking) }
-      to_move = objects.find { |ob| ob.cell == blocking }
-      unless to_move.nil?
-        p pos = GameHelper.find_x_y_value_of_cell(viable[:path].last, cells)
-        to_move.path.concat Path.new.create_path(to_move.x, to_move.y, pos.first, pos.last)
-        to_move.animate_path
-        graph.set_vacancy(blocking.first, blocking.last, false)
-        graph.set_vacancy(viable[:path].last[0], viable[:path].last[1], true)
-        to_move.location = GameHelper.find_location_of_cell(viable[:path].last, cells)
-        to_move.change_cell(viable[:path].last)
-        find_last_path_cells_that_match(affected, viable[:path].last)
-      end
-    end
-  end
+      if !viable.nil?
+        to_move = objects.find { |ob| ob.cell == blocking && !ob.off_screen }
+        unless to_move.nil?
+          move_x = to_move.x
+          move_y = to_move.y
+          start = viable[:path].find_index(blocking)
+          finish = viable[:path].find_index(viable[:path].last)
+          start.upto(finish) do |inc|
+            p pos = GameHelper.find_x_y_value_of_cell(viable[:path][inc], cells)
+            to_move.path.concat Path.new.create_path(move_x, move_y, pos.first, pos.last)
+            move_x = pos.first
+            move_y = pos.last
+          end
 
-  def self.change_route(viable_objects, objects, cells, graph, returning_objects)
-    new_vacancies = []
-
-    viable_objects.reverse.each_with_index do |object, i|
-      # p object[:vacancy]
-      object[:path].reverse_each do |path|
-        unless graph.get_vacancies.include?(path)
-          to_move = objects.find { |ob| ob.cell == path }
-          p object[:vacancy]
-          p to_move.path.size
-          to_move.clear_path if to_move.path.size > 0
-
-          pos = GameHelper.find_x_y_value_of_cell(object[:path].last, cells)
-          to_move.path.concat Path.new.create_path(to_move.x, to_move.y, pos.first, pos.last)
           to_move.animate_path
-          graph.set_vacancy(path.first, path.last, false)
-          graph.set_vacancy(object[:path].last[0], object[:path].last[1], true)
-          to_move.location = GameHelper.find_location_of_cell(object[:path].last, cells)
-          to_move.change_cell(object[:path].last)
-          size = object[:path].size
-          object[:path].delete_at(size - 1)
-          find_last_path_cells_that_match(viable_objects, object[:path].last, i)
+          graph.set_vacancy(blocking.first, blocking.last, false)
+          graph.set_vacancy(viable[:path].last[0], viable[:path].last[1], true)
+          to_move.location = GameHelper.find_location_of_cell(viable[:path].last, cells)
+          to_move.change_cell(viable[:path].last)
+          find_last_path_cells_that_match(affected, viable[:path].last)
         end
       end
     end
-    # finally check if any of the last paths are the same if so delete the last path
-    viable_objects.each_with_index do |vv, i|
-      if (i + 1) < viable_objects.size
-        if viable_objects[i][:path].last == viable_objects[i+1][:path].last
-          size = viable_objects[i][:path].size
-          viable_objects[i][:path].delete_at(size - 1)
-        end
-      end
-    end
-
-    viable_objects.sort_by!{ |vv| vv[:path].last }
-    p "viable objects -> ", viable_objects
   end
 
   def self.find_last_path_cells_that_match(viable_objects, cell)
     viable_objects.reverse.each_with_index do |object, i|
-      if object[:path].last == cell #&& i != exclusion
+      if object[:path].last == cell
         p "path is #{object[:path]}"
         p "match found at #{object[:vacancy]}"
         size = object[:path].size
@@ -305,31 +282,7 @@ module MethodLoader
     end
   end
 
-  def self.move_objects_en_route(viable_objects, objects, graph, cells)
-    viable_objects.reverse_each do |object|
-      object[:path].reverse_each do |path|
-        p "blocked", blocking_objects(path, graph)
-        unless graph.get_vacancies.include?(path)
-          to_move = objects.find { |ob| ob.cell == path }
-          pos = GameHelper.find_x_y_value_of_cell(object[:path].last, cells)
-          to_move.path.concat Path.new.create_path(to_move.x, to_move.y,
-                                                   pos.first, pos.last)
-          to_move.animate_path
-          # p "the path = #{path}, other is #{object[:path].last}"
-          graph.set_vacancy(path.first, path.last, false)
-          graph.set_vacancy(object[:path].last[0], object[:path].last[1], true)
-          to_move.location =
-            GameHelper.find_location_of_cell(object[:path].last, cells)
-          to_move.change_cell(object[:path].last)
-          size = object[:path].size
-          object[:path].delete_at(size - 1)
-        end
-      end
-    end
-  end
-
   def self.find_matches_under_glass(obstacles, objects, width, map_size)
-
     extract_glass_obstacles = []
 
     obstacles.each do |obstacle|
@@ -341,15 +294,13 @@ module MethodLoader
       end
     end
 
-    pairs = find_obstacle_object_pairs(extract_glass_obstacles, objects, width,
-                                       map_size)
+    pairs = find_obstacle_object_pairs(extract_glass_obstacles, objects, width, map_size)
     testing_time = find_potential_matches(objects, width, map_size, pairs)
-
     find_potential_matches(objects, width, map_size, pairs)
-    mytest(testing_time, objects, extract_glass_obstacles, width)
+    remove_suggestions(testing_time, objects, extract_glass_obstacles, width)
   end
 
-  def self.mytest(array_data, objects, glass_obstacle, width)
+  def self.remove_suggestions(array_data, objects, glass_obstacle, width)
     array_data.reverse.each do |arr|
       locations = glass_obstacle.map(&:location)
       glass_finder = arr.find_all { |a| locations.include?(a) }
@@ -368,8 +319,7 @@ module MethodLoader
     array_data
   end
 
-  def self.find_obstacle_object_pairs(suitable_obstacle_objects, objects, width,
-                                      map_size)
+  def self.find_obstacle_object_pairs(suitable_obstacle_objects, objects, width, map_size)
     pairs = []
 
     suitable_obstacle_objects.each do |obstacle| width
@@ -471,8 +421,6 @@ module MethodLoader
         end
       end
     end
-
-
   end
 
   def self.find_potential_matches(objects, width, map_size, pairs)
@@ -714,15 +662,10 @@ module MethodLoader
   end
 
   def self.all_potential_matches(objects, obstacles, map_width, map)
-    obstacle_matches = MethodLoader.find_matches_under_glass(obstacles,
-                                                             objects,
-                                                             map_width,
-                                                             map.size)
-
+    obstacle_matches = MethodLoader.find_matches_under_glass(obstacles, objects, map_width, map.size)
     pairs = MethodLoader.find_object_pairs(objects, map_width, map.size)
-    potential_matches = MethodLoader.find_potential_matches(objects,
-                                                            map_width,
-                                                            map.size, pairs)
+    potential_matches = MethodLoader.find_potential_matches(objects, map_width, map.size, pairs)
+
     if !obstacle_matches.empty?
       obstacle_matches.each do |obs|
         potential_matches << obs

@@ -643,31 +643,31 @@ class Main
   def add_new_objects
     if @counter.zero?
       vacancies = @graph.get_vacancies
-      p viable = GameHelper.viable_objects(vacancies, @graph, @map_width)
-      p "viable size ->", viable.size
+      viable = GameHelper.viable_objects(vacancies, @graph, @map_width)
+      # p "viable size ->", viable.size
       return no_viable_objects if viable.empty?
       @returning_objects = @objects.find_all(&:off_screen).take(viable.size)
-      p @returning_objects.size
+      # p @returning_objects.size
       blocking_urbs = MethodLoader.show_blocking_objects(viable, @graph)
-      p "viable size ->", viable.size
+      # p "viable size ->", viable.size
+
       unless blocking_urbs.empty?
-        p "something needs to happen here"
-        affected = MethodLoader.affected_paths(viable, blocking_urbs.reverse)
-        p "affected -> ", affected
-        p MethodLoader.sort_paths(affected)
-        MethodLoader.move_blocking_urbs(affected, blocking_urbs.reverse, @objects, @cells, @graph)
-        # MethodLoader.move_objects_en_route(viable, @objects, @graph, @cells)
-        # MethodLoader.change_route(viable, @objects, @cells, @graph, @returning_objects)
+        p "WE HAVE ENCOUNTERED BLOCKED URBS!!!"
+        affected = MethodLoader.affected_paths(viable, blocking_urbs)
+        p "affected -> "
+        p affected = MethodLoader.sort_paths(affected)
+        MethodLoader.move_blocking_urbs(affected, blocking_urbs, @objects, @cells, @graph)
+
         p "new vacancies -> #{@graph.get_vacancies}"
         p viable = GameHelper.viable_objects(@graph.get_vacancies, @graph, @map_width)
-        byebug
+        p " "
+        p "new viables -> #{viable}"
       end
-
-      # GameHelper.position_new_objects(@returning_objects, viable, @cells)
 
       MethodLoader.move_new_objects(@returning_objects, viable, @urbs_in_level,
                                     @graph, @cells)
       @counter = 1
+
     elsif @counter == 1
       complete = GameHelper.objects_in_place(@returning_objects)
       @counter = 2 if complete == @returning_objects.size
