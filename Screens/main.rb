@@ -403,16 +403,9 @@ class Main
   end
 
   def define_swap_path
-    @urb_object1.path.concat Path.new.create_path(@urb_object1.x,
-                                                  @urb_object1.y,
-                                                  @urb_object2.x,
-                                                  @urb_object2.y)
+    @urb_object1.path.concat Path.new.create_path(@urb_object1.x, @urb_object1.y, @urb_object2.x, @urb_object2.y)
     @urb_object1.animate_path
-
-    @urb_object2.path.concat Path.new.create_path(@urb_object2.x,
-                                                  @urb_object2.y,
-                                                  @urb_object1.x,
-                                                  @urb_object1.y)
+    @urb_object2.path.concat Path.new.create_path(@urb_object2.x, @urb_object2.y, @urb_object1.x, @urb_object1.y)
     @urb_object2.animate_path
 
     @swap_one = GameHelper.find_x_y_value_of_cell(@urb_object1.cell, @cells)
@@ -421,9 +414,7 @@ class Main
   end
 
   def path_cleared
-    if @urb_object1.x == @swap_one.first &&
-       @urb_object1.y == @swap_one.last &&
-       @urb_object2.x == @swap_two.first && @urb_object2.y == @swap_two.last
+    if @urb_object1.x == @swap_one.first && @urb_object1.y == @swap_one.last && @urb_object2.x == @swap_two.first && @urb_object2.y == @swap_two.last
       @urb_object1.clear_path
       @urb_object2.clear_path
       @counter = 2
@@ -453,17 +444,14 @@ class Main
 
   def setup_objects
     @urbs_in_level = @level_manager.urbs_in_level
-    # @objects = MethodLoader.create_urbs(@cells, @base_tiles, @level_manager,
-    #                                     @obstacles)
-    @objects = MethodLoader.fake_urbs(@cells, @level, @base_tiles,
-                                      @level_manager, @obstacles)
+    # @objects = MethodLoader.create_urbs(@cells, @base_tiles, @level_manager, @obstacles)
+    @objects = MethodLoader.fake_urbs(@cells, @level, @base_tiles, @level_manager, @obstacles)
   end
 
   def find_matches
     p '...finding automatic matches'
     return unless @counter.zero?
-    @match_details = GameModule.find_automatic_matches(@objects, @map_width,
-                                                       @map, @obstacles)
+    @match_details = GameModule.find_automatic_matches(@objects, @map_width, @map, @obstacles)
     if @match_details.empty?
       initial_ready
       reset_variables
@@ -476,10 +464,8 @@ class Main
   def generate_match_data
     p '...generate match data'
     @matches = GameHelper.return_matches_from_hash_in_order(@match_details)
-    match_cells = GameHelper.convert_matches_to_cells(@matches, @objects,
-                                                      @level_manager)
-    GameHelper.remove_broken_obstacles(@matches, @obstacles, @graph,
-                                       @level_manager)
+    match_cells = GameHelper.convert_matches_to_cells(@matches, @objects, @level_manager)
+    GameHelper.remove_broken_obstacles(@matches, @obstacles, @graph, @level_manager)
 
     @cell_vacancies = []
     match_cells.each { |mc| @cell_vacancies << @graph.set_group_vacancies(mc) }
@@ -510,11 +496,7 @@ class Main
     paths = GameHelper.available_paths(@graph, @map_width)
     return @stage = STAGE.find_index(:rearrange) unless paths.flatten.empty?
     @homeless_objects = []
-    vacant_details = GameHelper.set_new_vacancy_details(@objects,
-                                                        @homeless_objects,
-                                                        @map_width, @cells,
-                                                        @collapsed_match,
-                                                        @graph)
+    vacant_details = GameHelper.set_new_vacancy_details(@objects, @homeless_objects, @map_width, @cells, @collapsed_match, @graph)
     @new_vacancy_details = vacant_details[0]
     @new_vacancies = vacant_details[1]
     @stage = STAGE.find_index(:replace)
@@ -528,10 +510,8 @@ class Main
   end
 
   def initial_match_removal
-    @matched_positions = GameModule.move_objects_off_screen(@collapsed_match,
-                                                            @objects)
-    @starting_points = GameHelper.get_starting_point(@cell_vacancies, @graph,
-                                                     @map_width)
+    @matched_positions = GameModule.move_objects_off_screen(@collapsed_match, @objects)
+    @starting_points = GameHelper.get_starting_point(@cell_vacancies, @graph, @map_width)
     @counter = 1
   end
 
@@ -564,10 +544,8 @@ class Main
       temp = @urb_object1.dup
       update_object_cell(@urb_object1, @urb_object2)
       update_object_cell(@urb_object2, temp)
-      details = GameModule.combine_matches(@objects, @urb_one, @map_width,
-                                           @map, @obstacles)
-      details2 = GameModule.combine_matches(@objects, @urb_two,
-                                            @map_width, @map, @obstacles)
+      details = GameModule.combine_matches(@objects, @urb_one, @map_width, @map, @obstacles)
+      details2 = GameModule.combine_matches(@objects, @urb_two, @map_width, @map, @obstacles)
       p details, details2
       if details.nil? && details2.nil?
         no_match_made(temp)
@@ -618,6 +596,7 @@ class Main
     if @counter.zero?
       p '...manage remaining objects'
       @moved_urbs = MethodLoader.identify_new_positions(@graph, @move_down, @move_to, @objects, @cells)
+      p @moved_urbs.size
       @counter = if @moved_urbs.empty?
                    2
                  else
@@ -644,12 +623,9 @@ class Main
     if @counter.zero?
       vacancies = @graph.get_vacancies
       viable = GameHelper.viable_objects(vacancies, @graph, @map_width)
-      # p "viable size ->", viable.size
       return no_viable_objects if viable.empty?
       @returning_objects = @objects.find_all(&:off_screen).take(viable.size)
-      # p @returning_objects.size
-      blocking_urbs = MethodLoader.show_blocking_objects(viable, @graph)
-      # p "viable size ->", viable.size
+      blocking_urbs = MethodLoader.show_blocking_objects(viable, @graph, @obstacles)
 
       unless blocking_urbs.empty?
         p "WE HAVE ENCOUNTERED BLOCKED URBS!!!"
@@ -657,15 +633,13 @@ class Main
         p "affected -> "
         p affected = MethodLoader.sort_paths(affected)
         MethodLoader.move_blocking_urbs(affected, blocking_urbs, @objects, @cells, @graph)
-
         p "new vacancies -> #{@graph.get_vacancies}"
         p viable = GameHelper.viable_objects(@graph.get_vacancies, @graph, @map_width)
         p " "
         p "new viables -> #{viable}"
       end
 
-      MethodLoader.move_new_objects(@returning_objects, viable, @urbs_in_level,
-                                    @graph, @cells)
+      MethodLoader.move_new_objects(@returning_objects, viable, @urbs_in_level, @graph, @cells)
       @counter = 1
 
     elsif @counter == 1

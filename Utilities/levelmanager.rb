@@ -45,13 +45,13 @@ class Levelmanager
     when 4
       score_setter(moves: 20, min_score: 4500, glass: 6)
     when 5
-      score_setter(moves: 100, min_score: 6000)
+      score_setter(moves: 20, min_score: 5000)
     when 6
-      score_setter(moves: 100, min_score: 7000)
+      score_setter(moves: 10, min_score: 3000)
     when 7
-      score_setter(moves: 100, glass: 5)
+      score_setter(moves: 6, glass: 5)
     when 8
-      score_setter(moves: 100, glass: 6)
+      score_setter(moves: 16, glass: 8)
     when 9
       score_setter(moves: 100, glass: 8)
     when 10
@@ -90,7 +90,6 @@ class Levelmanager
     when 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
       return true
     end
-
     false
   end
 
@@ -108,13 +107,12 @@ class Levelmanager
     when 7
       locations.push(7, 11, 12, 13, 17)
     when 8
-      locations.push(2, 7, 12, 17, 22, 27)
+      locations.push(6, 8, 11, 13, 16, 18, 21, 23)
     when 9
       locations.push(12, 14, 15, 17, 18, 20, 21, 23)
     when 10
       locations.push(0, 1, 2, 3, 4, 5, 9, 14, 15, 19, 20, 24)
     end
-
     locations
   end
 

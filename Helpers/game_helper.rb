@@ -312,14 +312,31 @@ module GameHelper
     viable
   end
 
+  # arr = []
+  # inv.last.downto(0) do |i|
+  # 	arr << [inv.first, i]
+  # end
+  #
+  # arr => [[1, 2], [1, 1], [1, 0]]
+  # (invisibles & arr) == arr     => false
+  #
+  # (invisibles & [[1,2]]) == [[1,2]] => true
+  #
   def self.viable_exceptions(vacancies, graph)
     temp = []
     invisibles = graph.get_invisibles
     vacancies.each do |vacancy|
       invisibles.each do |inv|
+        arr = []
+        inv.last.downto(0) do |i|
+          arr << [inv.first, i]
+        end
+        if (invisibles & arr) == arr #arr is a subset of invisibles
           temp << { vacancy: vacancy, path: [vacancy] } if vacancy.first == inv.first && inv.last < vacancy.last
+        end
       end
     end
+    byebug
     # should be a way to pass empty paths into an array via clear paths only
     temp.uniq
   end

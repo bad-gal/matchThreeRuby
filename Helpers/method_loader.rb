@@ -50,35 +50,30 @@ module MethodLoader
        2, 3, 3, 4, 1,
        2, 4, 3, 4, 5,
        2, 5, 4, 5, 2]
-
     when 2
       [2, 1, 4,
        4, 5, 5, 3, 1,
        4, 1, 3, 4, 3,
        4, 2, 1, 2, 1,
        5, 3, 3]
-
     when 3
       [1, 4, 3, 6, 7,
        6, 4, 2, 6, 6,
        5, 1, 3, 6, 2,
        1, 4, 3, 4, 3,
        6, 1, 4, 1, 2]
-
     when 4
       [5, 3, 5, 4, 2, 1,
        3, 5, 3, 6, 1, 2,
        1, 2, 3, 4, 1, 1,
        5, 4, 4, 4, 5, 1,
        1, 1, 4, 1, 2, 3]
-
     when 5
       [5, 1, 5, 1, 2, 1,
        5, 5, 2, 2, 3, 2,
        1, 2, 3, 4, 5, 5,
        4, 4, 4, 3,
        1, 4, 5, 1]
-
     when 6
       # [4, 4, 6, 3, 2,
       #  4, 2, 7, 3, 4,
@@ -90,6 +85,13 @@ module MethodLoader
         3, 3,
         2, 7, 6, 6, 6,
         2, 2, 2, 2, 7]
+      when 9
+        [1, 2, 3, 4, 5, 6,
+         4, 5, 6, 1, 2, 4,
+         2,     5, 3,     1,
+         6,     1, 2,     5,
+         3, 3, 3, 4, 5, 6,
+         5, 6, 1, 2, 3, 4]
     end
   end
 
@@ -179,8 +181,8 @@ module MethodLoader
       end
 
       m_index = 0
-
       cell = [vacancy[0], vacancy[1] - 1]
+
       while cell[1] >= 0
         if !graph.get_vacancies.include?(cell) &&
            !move_down.include?(cell) && !graph.get_obstacles.include?(cell)
@@ -200,18 +202,17 @@ module MethodLoader
     GameHelper.set_move_down_path(move_down, move_to, objects, cells)
   end
 
-  def self.show_blocking_objects(viable_objects, graph)
+  def self.show_blocking_objects(viable_objects, graph, obstacles)
     blocking = []
-
+    obstacle_cells = obstacles.map(&:cell)
     viable_objects.reverse_each do |obj|
-      "blocking objects = #{obj[:path]} and #{graph.get_vacancies}"
       blocked = obj[:path] - graph.get_vacancies
       blocked.each do |bl|
-        blocking << bl
+        blocking << bl unless obstacle_cells.include?(bl)
       end
     end
     p "blocking objects -> ", blocking.reject(&:empty?).uniq.sort.reverse
-    blocking.reject(&:empty?).uniq.sort.reverse#flatten(1)
+    blocking.reject(&:empty?).uniq.sort.reverse
   end
 
   # which paths have the blocking objects
