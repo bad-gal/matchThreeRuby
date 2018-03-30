@@ -75,23 +75,18 @@ module MethodLoader
        4, 4, 4, 3,
        1, 4, 5, 1]
     when 6
-      # [4, 4, 6, 3, 2,
-      #  4, 2, 7, 3, 4,
-      #  3, 6,
-      #  2, 7, 6, 6, 3,
-      #  2, 4, 2, 2, 7]
        [4, 4, 6, 3, 2,
         4, 2, 7, 3, 4,
         3, 3,
         2, 7, 6, 6, 6,
         2, 2, 2, 2, 7]
       when 9
-        [1, 2, 3, 4, 5, 6,
-         4, 5, 6, 1, 2, 4,
-         2,     5, 3,     1,
-         6,     1, 2,     5,
-         3, 3, 3, 4, 5, 6,
-         5, 6, 1, 2, 3, 4]
+        [1, 2, 3, 4, 5, 4,
+         4, 5, 6, 1, 4, 2,
+         2,     1, 3,     6,
+         6,     1, 2,     2,
+         3, 1, 1, 4, 5, 2,
+         5, 6, 5, 2, 2, 4]
     end
   end
 
@@ -168,6 +163,7 @@ module MethodLoader
     paths
   end
 
+# the problem may be here
   def self.identify_new_positions(graph, move_down, move_to, objects, cells)
     temp = []
 
@@ -215,6 +211,17 @@ module MethodLoader
     blocking.reject(&:empty?).uniq.sort.reverse
   end
 
+  def self.blocking_affect(affect, graph, obstacles)
+    blocking = []
+    obstacle_cells = obstacles.map(&:cell)
+    blocked = affect[:path] - graph.get_vacancies
+    blocked.each do |bl|
+      blocking << bl unless obstacle_cells.include?(bl)
+    end
+    p "blocking objects -> ", blocking.reject(&:empty?).uniq.sort.reverse
+    blocking.reject(&:empty?).uniq.sort.reverse
+  end
+
   # which paths have the blocking objects
   def self.affected_paths(viable_objects, blocking_urbs)
     affected = []
@@ -241,34 +248,49 @@ module MethodLoader
     return affected
   end
 
-  # only move the blocked objects -> [[2, 3], [2, 2], [2, 1]], affected -> subset of viable
-  def self.move_blocking_urbs(affected, blocking_urbs, objects, cells, graph)
-    p "...move_blocking_urbs"
-    blocking_urbs.each do |blocking|
-      p "blocking #{blocking}"
-      p viable = affected.find{ |obj| obj[:path].include?(blocking) }
-      if !viable.nil?
-        to_move = objects.find { |ob| ob.cell == blocking && !ob.off_screen }
-        unless to_move.nil?
-          move_x = to_move.x
-          move_y = to_move.y
-          start = viable[:path].find_index(blocking)
-          finish = viable[:path].find_index(viable[:path].last)
-          start.upto(finish) do |inc|
-            p pos = GameHelper.find_x_y_value_of_cell(viable[:path][inc], cells)
-            to_move.path.concat Path.new.create_path(move_x, move_y, pos.first, pos.last)
-            move_x = pos.first
-            move_y = pos.last
+  def self.move_blocking_urbs(affected, blocking_urbs, objects, cells, graph, obstacles)
+    arr = []
+    affected.each do |affect|
+      blocking_urbs = blocking_affect(affect, graph, obstacles)
+      p affect
+      puts "blocking urbs -> #{blocking_urbs}"
+      affect[:path].reverse_each do |node|
+        if blocking_urbs.include?(node)
+          to_move = objects.find { |ob| ob.cell == node && !ob.off_screen }
+          unless to_move.nil?
+            arr << to_move unless arr.include?(to_move)
+            if to_move.path.empty?
+              p "was empty path"
+              move_x = to_move.x
+              move_y = to_move.y
+            else
+              p "path not empty for cell #{node}"
+              move_x = to_move.path.last[0]
+              move_y = to_move.path.last[1]
+              p to_move.path
+            end
+            start = affect[:path].find_index(node)
+            finish = affect[:path].find_index(affect[:path].last)
+            start.upto(finish) do |inc|
+              p pos = GameHelper.find_x_y_value_of_cell(affect[:path][inc], cells)
+              new_path = Path.new.create_path(move_x, move_y, pos.first, pos.last)
+                to_move.path.concat Path.new.create_path(move_x, move_y, pos.first, pos.last)
+                p "object path including concat path  #{to_move.path}..."
+                move_x = pos.first
+                move_y = pos.last
+            end
+            to_move.animate_path
+            graph.set_vacancy(node.first, node.last, false)
+            graph.set_vacancy(affect[:path].last[0], affect[:path].last[1], true)
+            to_move.location = GameHelper.find_location_of_cell(affect[:path].last, cells)
+            to_move.change_cell(affect[:path].last)
+            find_last_path_cells_that_match(affected, affect[:path].last)
           end
-
-          to_move.animate_path
-          graph.set_vacancy(blocking.first, blocking.last, false)
-          graph.set_vacancy(viable[:path].last[0], viable[:path].last[1], true)
-          to_move.location = GameHelper.find_location_of_cell(viable[:path].last, cells)
-          to_move.change_cell(viable[:path].last)
-          find_last_path_cells_that_match(affected, viable[:path].last)
         end
       end
+    end
+    arr.each do |a|
+      a.reset_keyframes
     end
   end
 
@@ -276,7 +298,7 @@ module MethodLoader
     viable_objects.reverse.each_with_index do |object, i|
       if object[:path].last == cell
         p "path is #{object[:path]}"
-        p "match found at #{object[:vacancy]}"
+        p "match found at #{object[:vacancy]} for cell #{cell}"
         size = object[:path].size
         object[:path].delete_at(size - 1)
       end
@@ -288,7 +310,7 @@ module MethodLoader
 
     obstacles.each do |obstacle|
       if obstacle.status == Settings::OBSTACLE_STATE.find_index(:GLASS)
-        glass_obstacle = objects.find { |o| o.location == obstacle.location }
+        glass_obstacle = objects.find { |o| o.location == obstacle.location && !o.off_screen }
         if !glass_obstacle.nil?
           extract_glass_obstacles << glass_obstacle
         end
@@ -387,7 +409,7 @@ module MethodLoader
   def self.collate_list(objects, width, urb, pair, location, location_sum)
     items = []
 
-    temp = objects.find { |o| o.location == location + location_sum }
+    temp = objects.find { |o| o.location == location + location_sum && !o.off_screen }
     if !temp.nil?
       if temp.status == :NONE
         arr = []
@@ -602,56 +624,56 @@ module MethodLoader
 
     objects.each do |o| width
       if o.location % width < (width - 1) # + 1
-        temp = objects.find {|ob| ob.location == (o.location + 1) && ob.type == o.type && o.status == status && ob.status == status }
+        temp = objects.find {|ob| ob.location == (o.location + 1) && ob.type == o.type && o.status == status && ob.status == status && !ob.off_screen }
         if !temp.nil?
           pairs << [o.location, temp.location].sort
         end
       end
 
       if o.location % width > 0 # - 1
-        temp = objects.find {|ob| ob.location == (o.location - 1) && ob.type == o.type && o.status == status && ob.status == status }
+        temp = objects.find {|ob| ob.location == (o.location - 1) && ob.type == o.type && o.status == status && ob.status == status && !ob.off_screen }
          if !temp.nil?
           pairs << [o.location, temp.location].sort
         end
       end
 
       if o.location % width < (width - 2) # + 2
-        temp = objects.find {|ob| ob.location == (o.location + 2) && ob.type == o.type && o.status == status && ob.status == status }
+        temp = objects.find {|ob| ob.location == (o.location + 2) && ob.type == o.type && o.status == status && ob.status == status && !ob.off_screen }
          if !temp.nil?
           pairs << [o.location, temp.location].sort
         end
       end
 
       if o.location % width > 1 # - 2
-        temp = objects.find {|ob| ob.location == (o.location - 2) && ob.type == o.type && o.status == status && ob.status == status }
+        temp = objects.find {|ob| ob.location == (o.location - 2) && ob.type == o.type && o.status == status && ob.status == status && !ob.off_screen }
         if !temp.nil?
           pairs << [o.location, temp.location].sort
         end
       end
 
       if o.location < (map_size - width) # + width
-        temp = objects.find {|ob| ob.location == (o.location + width) && ob.type == o.type && o.status == status && ob.status == status }
+        temp = objects.find {|ob| ob.location == (o.location + width) && ob.type == o.type && o.status == status && ob.status == status && !ob.off_screen }
          if !temp.nil?
           pairs << [o.location, temp.location].sort
         end
       end
 
       if o.location >= width # - width
-        temp = objects.find {|ob| ob.location == (o.location - width) && ob.type == o.type && o.status == status && ob.status == status }
+        temp = objects.find {|ob| ob.location == (o.location - width) && ob.type == o.type && o.status == status && ob.status == status && !ob.off_screen }
          if !temp.nil?
           pairs << [o.location, temp.location].sort
         end
       end
 
       if o.location < (map_size - (width * 2)) # + (width * 2)
-        temp = objects.find {|ob| ob.location == (o.location + (width * 2)) && ob.type == o.type && o.status == status && ob.status == status }
+        temp = objects.find {|ob| ob.location == (o.location + (width * 2)) && ob.type == o.type && o.status == status && ob.status == status && !ob.off_screen }
          if !temp.nil?
           pairs << [o.location, temp.location].sort
         end
       end
 
       if o.location >= width * 2 # - (width * 2)
-        temp = objects.find {|ob| ob.location == (o.location - (width * 2)) && ob.type == o.type && o.status == status && ob.status == status }
+        temp = objects.find {|ob| ob.location == (o.location - (width * 2)) && ob.type == o.type && o.status == status && ob.status == status && !ob.off_screen }
          if !temp.nil?
           pairs << [o.location, temp.location].sort
         end

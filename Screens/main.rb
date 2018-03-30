@@ -354,7 +354,6 @@ class Main
       # if @level_manager.level_completed?
       #   p "success"
       # end
-
       potential_matches = MethodLoader.all_potential_matches(@objects, @obstacles, @map_width, @map)
 
       if @to_test.zero?
@@ -444,8 +443,8 @@ class Main
 
   def setup_objects
     @urbs_in_level = @level_manager.urbs_in_level
-    # @objects = MethodLoader.create_urbs(@cells, @base_tiles, @level_manager, @obstacles)
-    @objects = MethodLoader.fake_urbs(@cells, @level, @base_tiles, @level_manager, @obstacles)
+    @objects = MethodLoader.create_urbs(@cells, @base_tiles, @level_manager, @obstacles)
+    # @objects = MethodLoader.fake_urbs(@cells, @level, @base_tiles, @level_manager, @obstacles)
   end
 
   def find_matches
@@ -632,7 +631,7 @@ class Main
         affected = MethodLoader.affected_paths(viable, blocking_urbs)
         p "affected -> "
         p affected = MethodLoader.sort_paths(affected)
-        MethodLoader.move_blocking_urbs(affected, blocking_urbs, @objects, @cells, @graph)
+        MethodLoader.move_blocking_urbs(affected, blocking_urbs, @objects, @cells, @graph, @obstacles)
         p "new vacancies -> #{@graph.get_vacancies}"
         p viable = GameHelper.viable_objects(@graph.get_vacancies, @graph, @map_width)
         p " "
@@ -643,8 +642,8 @@ class Main
       @counter = 1
 
     elsif @counter == 1
-      complete = GameHelper.objects_in_place(@returning_objects)
-      @counter = 2 if complete == @returning_objects.size
+      complete = GameHelper.objects_in_place(@objects) #@returning_objects
+      @counter = 2 if complete == @objects.size
 
     elsif @counter == 2
       p 'objects moved into new positions'
@@ -707,8 +706,6 @@ class Main
     puts "matched pos = #{@matched_positions}" unless @matched_positions.nil?
     puts "starting points = #{@starting_points}" unless @starting_points.nil?
     puts "rtn objs = #{@returning_objects.size}" unless @returning_objects.nil?
-    # @shuffling_mode
-    # @shuffle_timer
   end
 
   def select_urb(object)
@@ -722,7 +719,7 @@ class Main
            (@urb_one / @map_width)) || (@urb_two ==
            (@urb_one + @map_width) && @urb_two < @map.size) ||
            (@urb_two == @urb_one - @map_width && @urb_two >= 0)
-          @urb_object2 = @objects.find { |jt| jt.location == @urb_two }
+          @urb_object2 = @objects.find { |jt| jt.location == @urb_two && !jt.off_screen }
 
           if @urb_object1.type == @urb_object2.type
             reset_urb_selectors
@@ -731,12 +728,14 @@ class Main
             initial_swap
           end
           p "#{object.location}, #{object.cell}, #{object.active}, #{object.type}"
+          p "#{object.inspect}"
         else
           reset_urb_selectors
         end
       else
         p "#{object.location}, #{object.cell}, #{object.active}, #{object.type}"
-        @urb_object1 = @objects.find { |ob| ob.location == @urb_one }
+        p "#{object.inspect}"
+        @urb_object1 = @objects.find { |ob| ob.location == @urb_one  && !ob.off_screen }
         assign_selector(@selectors[0], @urb_object1)
       end
     end

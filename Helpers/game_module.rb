@@ -108,7 +108,7 @@ module GameModule
     row = element / width
     rows = map.size / width
 
-    e = objects.index(objects.find { |i| i.location == element })
+    e = objects.index(objects.find { |i| i.location == element && !i.off_screen })
     urb_type = objects[e].type
     matches << element
 
@@ -119,8 +119,7 @@ module GameModule
         )
 
         if !loc.nil?
-          if objects[loc].type == urb_type &&
-             objects[loc].visible == :visible && objects[loc].active == true
+          if objects[loc].type == urb_type && objects[loc].visible == :visible && objects[loc].active == true && !objects[loc].off_screen
             unless matches.include?(element + (width * (i + 1)))
               matches << element + (width * (i + 1))
             end
@@ -139,8 +138,7 @@ module GameModule
         )
 
         if !loc.nil?
-          if objects[loc].type == urb_type &&
-             objects[loc].visible == :visible && objects[loc].active == true
+          if objects[loc].type == urb_type && objects[loc].visible == :visible && objects[loc].active == true && !objects[loc].off_screen
             unless matches.include?(element - (width * (i + 1)))
               matches << element - (width * (i + 1))
             end
@@ -177,8 +175,7 @@ module GameModule
         )
 
         if !loc.nil?
-          if objects[loc].type == urb_type &&
-             objects[loc].visible == :visible && objects[loc].active == true
+          if objects[loc].type == urb_type && objects[loc].visible == :visible && objects[loc].active == true && !objects[loc].off_screen
             unless matches.include?(element + (i + 1))
               matches << element + (i + 1)
             end
@@ -197,8 +194,7 @@ module GameModule
         )
 
         if !loc.nil?
-          if objects[loc].type == urb_type &&
-             objects[loc].visible == :visible && objects[loc].active == true
+          if objects[loc].type == urb_type && objects[loc].visible == :visible && objects[loc].active == true && !objects[loc].off_screen
             unless matches.include?(element - (i + 1))
               matches << element - (i + 1)
             end

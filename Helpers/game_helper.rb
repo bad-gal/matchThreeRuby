@@ -288,7 +288,6 @@ module GameHelper
                 most_suitable_path(v, graph, map_width)
               end
     end
-
     # p "viable objects paths ->", path
     viable = []
     vacancies.each_with_index do |v, i|
@@ -312,16 +311,6 @@ module GameHelper
     viable
   end
 
-  # arr = []
-  # inv.last.downto(0) do |i|
-  # 	arr << [inv.first, i]
-  # end
-  #
-  # arr => [[1, 2], [1, 1], [1, 0]]
-  # (invisibles & arr) == arr     => false
-  #
-  # (invisibles & [[1,2]]) == [[1,2]] => true
-  #
   def self.viable_exceptions(vacancies, graph)
     temp = []
     invisibles = graph.get_invisibles
@@ -336,8 +325,6 @@ module GameHelper
         end
       end
     end
-    byebug
-    # should be a way to pass empty paths into an array via clear paths only
     temp.uniq
   end
 
@@ -352,9 +339,8 @@ module GameHelper
     complete = 0
 
     objects.each do |object|
-      complete += 1 if object.path.size.zero?
+      complete += 1 if object.path.empty?
     end
-
     complete
   end
 end

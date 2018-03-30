@@ -53,6 +53,11 @@ class UrbAnimation < Animation
             mouse_y >= @y && mouse_y <= (@y + @height)
   end
 
+  def reset_keyframes
+    keyframes.clear
+    animate_path
+  end
+
   def animate_path
     return if path.empty?
     step = @path.size / 40
