@@ -269,9 +269,17 @@ module GameHelper
       0.upto(map_width - 1) do |x|
         paths << graph.shortest_path(x, 0, vacancy.first, vacancy.last)
       end
+
+      # element must end with the destination, otherwise delete path
       paths.reverse_each do |path|
-        # p "suitable paths", path
         paths.delete(path) unless graph.get_vacancies.include?(path.last)
+      end
+
+      # remove any paths that contain obstacles
+      paths.reverse_each do |path|
+        path.each do |pa|
+          paths.delete(path) if graph.get_obstacles.include?(pa)
+        end
       end
     end
 
@@ -288,14 +296,12 @@ module GameHelper
                 most_suitable_path(v, graph, map_width)
               end
     end
-    # p "viable objects paths ->", path
+
     viable = []
     vacancies.each_with_index do |v, i|
       if !path[i].nil?
         if !path[i].empty?
-          # p "clear path thru is #{path}"
           viable << { vacancy: v, path: path[i] }
-          # viable << { vacancy: v, path: [path[i].last] }
         elsif (v[1]).zero? && !graph.get_obstacles.include?(v)
           viable << { vacancy: v, path: [v] }
         end
@@ -306,7 +312,7 @@ module GameHelper
     if viable.empty?
       p 'checking if there is a viable exception...'
       exception = viable_exceptions(vacancies, graph)
-      viable = exception unless exception.empty?
+      p viable = exception unless exception.empty?
     end
     viable
   end

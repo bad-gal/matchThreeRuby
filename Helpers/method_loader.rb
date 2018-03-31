@@ -163,7 +163,6 @@ module MethodLoader
     paths
   end
 
-# the problem may be here
   def self.identify_new_positions(graph, move_down, move_to, objects, cells)
     temp = []
 
@@ -267,15 +266,13 @@ module MethodLoader
               p "path not empty for cell #{node}"
               move_x = to_move.path.last[0]
               move_y = to_move.path.last[1]
-              p to_move.path
             end
             start = affect[:path].find_index(node)
             finish = affect[:path].find_index(affect[:path].last)
             start.upto(finish) do |inc|
-              p pos = GameHelper.find_x_y_value_of_cell(affect[:path][inc], cells)
+              pos = GameHelper.find_x_y_value_of_cell(affect[:path][inc], cells)
               new_path = Path.new.create_path(move_x, move_y, pos.first, pos.last)
                 to_move.path.concat Path.new.create_path(move_x, move_y, pos.first, pos.last)
-                p "object path including concat path  #{to_move.path}..."
                 move_x = pos.first
                 move_y = pos.last
             end
