@@ -57,7 +57,7 @@ class Levelmanager
     when 10
       score_setter(moves: 10, min_score: 5500, glass: 10)
     when 11
-      score_setter(moves: 100, min_score: 7000)
+      score_setter(moves: 15, min_score: 5800)
     end
   end
 
