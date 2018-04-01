@@ -10,18 +10,19 @@ class Levelmanager
       counters: {
         pac_counter: 0, baby_counter: 0, nerd_counter: 0, lady_counter: 0,
         punk_counter: 0, rocker_counter: 0, girl_nerd_counter: 0,
-        pigtails_counter: 0, glass_counter: 0
+        pigtails_counter: 0, glass_counter: 0, wood_counter: 0
       },
       min_score: 0,
       max_timer: 0,
-      glass: 0
+      glass: 0,
+      wood: 0
     }
     level_creator
   end
 
   def set_urbs_in_level
     case @level
-    when 1, 3, 4, 6, 7, 8, 9, 10
+    when 1, 3, 4, 6, 7, 8, 9, 10, 12
       5
     when 2, 5, 11
       6
@@ -32,6 +33,7 @@ class Levelmanager
     @scores[:moves] = args[:moves] if args.key?(:moves)
     @scores[:min_score] = args[:min_score] if args.key?(:min_score)
     @scores[:glass] = args[:glass] if args.key?(:glass)
+    @scores[:wood] = args[:wood] if args.key?(:wood)
   end
 
   def level_creator
@@ -57,7 +59,9 @@ class Levelmanager
     when 10
       score_setter(moves: 10, min_score: 5500, glass: 10)
     when 11
-      score_setter(moves: 15, min_score: 5800)
+      score_setter(moves: 100, min_score: 7000)
+    when 12
+      score_setter(moves: 100, wood: 5)
     end
   end
 
@@ -81,13 +85,19 @@ class Levelmanager
       elsif @scores[:moves] == 0
         return :fail
       end
+    when 12
+      if @scores[:wood_counter] == @scores[:wood]
+        return :success
+      elsif @scores[:moves] == 0
+        return :fail
+      end
     end
     :pending
   end
 
   def move_level?
     case @level
-    when 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
+    when 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
       return true
     end
     false
@@ -97,10 +107,14 @@ class Levelmanager
     !@scores[:glass].zero?
   end
 
+  def wood?
+    !@scores[:wood].zero?
+  end
+
   def obstacles
     locations = []
     case @level
-    when 3
+    when 3, 12
       locations.push(15, 16, 17, 18, 19)
     when 4
       locations.push(12, 13, 14, 15, 16, 17)
@@ -131,7 +145,7 @@ class Levelmanager
     case @level
     when 1
       [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-    when 2, 7
+    when 2, 7, 12
       [0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1,
        0]
     when 3, 10
@@ -162,7 +176,7 @@ class Levelmanager
     case @level
     when 1
       map_setter(width: 5, height: 4, map_level: map_structure)
-    when 2, 3, 6, 7, 10
+    when 2, 3, 6, 7, 10, 12
       map_setter(width: 5, height: 5, map_level: map_structure)
     when 4, 5
       map_setter(width: 6, height: 5, map_level: map_structure)
@@ -177,7 +191,7 @@ class Levelmanager
     basic = 50 * size
     bonus = size * 30
 
-    if size == 3
+    if size <= 3
       @scores[:score] += basic
     elsif size > 3
       @scores[:score] += (basic + bonus)
@@ -185,7 +199,8 @@ class Levelmanager
   end
 
   def add_obstacle_score
-    @scores[:score] += 200
+    @scores[:score] += 200 if glass?
+    @scores[:score] += 350 if wood?
   end
 
   def add_to_urb_counter(type)

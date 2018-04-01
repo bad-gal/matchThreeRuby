@@ -157,9 +157,6 @@ module GameHelper
     elsif primary_direction.uniq.length > 1
       direction = :multiple
     end
-    # puts "direction = #{direction}"
-    # puts "vacancy_columns = #{vacancy_columns}"
-    # puts "primary_direction = #{primary_direction}"
     direction
   end
 

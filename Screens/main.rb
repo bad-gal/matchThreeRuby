@@ -31,6 +31,12 @@ class Main
     load_variables
     load_instructions
     @to_test = 0
+    p "wooden obstacles"
+    @objects.each do |ob|
+      if ob.status == :WOOD
+        p ob.type
+      end
+    end
   end
 
   def update
@@ -38,7 +44,7 @@ class Main
     when MATCH_STATE.find_index(:auto)
       automatic_state
     when MATCH_STATE.find_index(:ready)
-      ready_state # partially completed
+      ready_state
     when MATCH_STATE.find_index(:swap)
       swap_state
     when MATCH_STATE.find_index(:user_match)
@@ -187,6 +193,9 @@ class Main
     if @level_manager.glass?
       filename = 'assets/glass_tile.png'
       status = Settings::OBSTACLE_STATE.find_index(:GLASS)
+    elsif @level_manager.wood?
+      filename = 'assets/wood_100.png'
+      status = Settings::OBSTACLE_STATE.find_index(:WOOD)
     end
 
     tile_sq = @base_tiles.tile_square
@@ -443,8 +452,8 @@ class Main
 
   def setup_objects
     @urbs_in_level = @level_manager.urbs_in_level
-    @objects = MethodLoader.create_urbs(@cells, @base_tiles, @level_manager, @obstacles)
-    # @objects = MethodLoader.fake_urbs(@cells, @level, @base_tiles, @level_manager, @obstacles)
+    # @objects = MethodLoader.create_urbs(@cells, @base_tiles, @level_manager, @obstacles)
+    @objects = MethodLoader.fake_urbs(@cells, @level, @base_tiles, @level_manager, @obstacles)
   end
 
   def find_matches
@@ -572,6 +581,7 @@ class Main
     @match_details << details
     @match_details << details2
     @match_details.compact!
+    GameModule.obstacle_contained_in_match(@obstacles, @match_details)
     reset_urb_selectors
     @swap_one = nil
     @swap_two = nil
