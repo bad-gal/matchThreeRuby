@@ -34,6 +34,7 @@ module GameModule
         end
       end
     end
+    obstacle_contained_in_match(obstacles, matched_details)
     matched_details
   end
 
@@ -80,12 +81,10 @@ module GameModule
 
   def self.combine_matches(objects, element, width, map, obstacles)
     matches = []
-    add_match = find_matches_by_column(objects, element, width, map,
-                                       obstacles).sort.reverse
+    add_match = find_matches_by_column(objects, element, width, map, obstacles).sort.reverse
     matches.concat add_match
 
-    add_match = find_matches_by_row(objects, element, width, map,
-                                    obstacles).sort.reverse
+    add_match = find_matches_by_row(objects, element, width, map, obstacles).sort.reverse
     matches.concat add_match
 
     return nil if matches.empty?
@@ -97,10 +96,8 @@ module GameModule
                               nil
                             end
     matches = matches.uniq.sort.reverse.flatten
-
     details = { matches: matches, shape: get_shape(matches, width),
     intersects: intersecting_elements, special_type: :NONE }
-
   end
 
   def self.find_matches_by_column(objects, element, width, map, obstacles)
@@ -154,7 +151,6 @@ module GameModule
       matches.clear
     else
       matches.sort!.reverse!
-      obstacle_contained_in_match(obstacles, matches)
     end
     matches
   end
@@ -210,7 +206,6 @@ module GameModule
       matches.clear
     else
       matches.sort!.reverse!
-      obstacle_contained_in_match(obstacles, matches)
     end
     matches
   end
@@ -278,20 +273,33 @@ module GameModule
     end
   end
 
-  def self.obstacle_contained_in_match(obstacles, matches)
+  def self.obstacle_contained_in_match(obstacles, match_details)
+    matches = []
+    match_details.each do |match|
+      match[:matches].each do |m|
+        matches << m
+      end
+    end
+
     return if obstacles.empty?
     obstacles.each do |obs|
-      next unless obs.status == Settings::OBSTACLE_STATE.find_index(:GLASS)
+      next unless [Settings::OBSTACLE_STATE.find_index(:GLASS), Settings::OBSTACLE_STATE.find_index(:WOOD)].any? { |obstacle| obstacle == obs.status }
       if matches.include? obs.location
         obs.counter -= 1
-        obs.change(obs.status) if obs.counter.zero?
+        obs.change(obs.status)
+        unless obs.counter.zero?
+          # remove match element from array
+          found = match_details.find { |match| match[:matches].include?(obs.location) }
+          unless found.nil?
+            found[:matches].delete(obs.location)
+          end
+        end
       end
     end
   end
 
   def self.delete_obstacles(obstacles, objects, obstacle_locations)
     return if obstacles.empty?
-
     obstacles.delete_if do |o|
       if o.animation_finished
         urb = objects.find { |u| u.location == o.location }

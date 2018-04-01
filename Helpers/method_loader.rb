@@ -32,6 +32,9 @@ module MethodLoader
           if level_manager.glass?
             visible = :visible
             status = :GLASS
+          elsif level_manager.wood?
+            visible = :visible
+            status = :WOOD
           end
         end
       end
@@ -51,11 +54,11 @@ module MethodLoader
        2, 4, 3, 4, 5,
        2, 5, 4, 5, 2]
     when 2
-      [2, 1, 4,
+         [2, 1, 4,
        4, 5, 5, 3, 1,
        4, 1, 3, 4, 3,
        4, 2, 1, 2, 1,
-       5, 3, 3]
+          5, 3, 3]
     when 3
       [1, 4, 3, 6, 7,
        6, 4, 2, 6, 6,
@@ -72,21 +75,27 @@ module MethodLoader
       [5, 1, 5, 1, 2, 1,
        5, 5, 2, 2, 3, 2,
        1, 2, 3, 4, 5, 5,
-       4, 4, 4, 3,
-       1, 4, 5, 1]
+          4, 4, 4, 3,
+          1, 4, 5, 1]
     when 6
        [4, 4, 6, 3, 2,
         4, 2, 7, 3, 4,
-        3, 3,
+        3,          3,
         2, 7, 6, 6, 6,
         2, 2, 2, 2, 7]
-      when 9
-        [1, 2, 3, 4, 5, 4,
-         4, 5, 6, 1, 4, 2,
-         2,     1, 3,     6,
-         6,     1, 2,     2,
-         3, 1, 1, 4, 5, 2,
-         5, 6, 5, 2, 2, 4]
+    when 9
+      [1, 2, 3, 4, 5, 4,
+       4, 5, 6, 1, 4, 2,
+       2,    1, 3,    6,
+       6,    1, 2,    2,
+       3, 1, 1, 4, 5, 2,
+       5, 6, 5, 2, 2, 4]
+    when 12
+         [2, 1, 4,
+       4, 5, 5, 3, 1,
+       4, 1, 3, 4, 3,
+       4, 2, 1, 2, 1,
+          5, 3, 3]
     end
   end
 
@@ -117,15 +126,15 @@ module MethodLoader
           if level_manager.glass?
             visible = :visible
             status = :GLASS
+          elsif level_manager.wood?
+            visible = :visible
+            status = :WOOD
           end
         end
       end
 
-      objects << UrbAnimation.new(urb_hash[:file], tile_sq, tile_sq,
-                                  Settings::FPS, duration, true, x, y,
-                                  valid_tiles[i][:location], urb_hash[:type],
-                                  status, visible, active,
-                                  valid_tiles[i][:cell])
+      objects << UrbAnimation.new(urb_hash[:file], tile_sq, tile_sq, Settings::FPS, duration, true, x, y,
+                        valid_tiles[i][:location], urb_hash[:type], status, visible, active, valid_tiles[i][:cell])
     end
     objects
   end
@@ -306,7 +315,7 @@ module MethodLoader
     extract_glass_obstacles = []
 
     obstacles.each do |obstacle|
-      if obstacle.status == Settings::OBSTACLE_STATE.find_index(:GLASS)
+      if [Settings::OBSTACLE_STATE.find_index(:GLASS), Settings::OBSTACLE_STATE.find_index(:WOOD)].any? { |obs| obs == obstacle.status }
         glass_obstacle = objects.find { |o| o.location == obstacle.location && !o.off_screen }
         if !glass_obstacle.nil?
           extract_glass_obstacles << glass_obstacle
@@ -344,56 +353,56 @@ module MethodLoader
 
     suitable_obstacle_objects.each do |obstacle| width
       if obstacle.location % width < (width - 1) # + 1
-        temp = objects.find {|ob| ob.location == (obstacle.location + 1) && ob.type == obstacle.type && (ob.status == :NONE || ob.status == :GLASS) }
+        temp = objects.find {|ob| ob.location == (obstacle.location + 1) && ob.type == obstacle.type && (ob.status == :NONE || ob.status == :GLASS || ob.status == :WOOD) }
         if !temp.nil?
           pairs << [obstacle.location, temp.location].sort
         end
       end
 
       if obstacle.location % width > 0 # - 1
-        temp = objects.find {|ob| ob.location == (obstacle.location - 1) && ob.type == obstacle.type && (ob.status == :NONE || ob.status == :GLASS) }
+        temp = objects.find {|ob| ob.location == (obstacle.location - 1) && ob.type == obstacle.type && (ob.status == :NONE || ob.status == :GLASS || ob.status == :WOOD) }
          if !temp.nil?
           pairs << [obstacle.location, temp.location].sort
         end
       end
 
       if obstacle.location % width < (width - 2) # + 2
-        temp = objects.find {|ob| ob.location == (obstacle.location + 2) && ob.type == obstacle.type && (ob.status == :NONE || ob.status == :GLASS) }
+        temp = objects.find {|ob| ob.location == (obstacle.location + 2) && ob.type == obstacle.type && (ob.status == :NONE || ob.status == :GLASS || ob.status == :WOOD) }
          if !temp.nil?
           pairs << [obstacle.location, temp.location].sort
         end
       end
 
       if obstacle.location % width > 1 # - 2
-        temp = objects.find {|ob| ob.location == (obstacle.location - 2) && ob.type == obstacle.type && (ob.status == :NONE || ob.status == :GLASS) }
+        temp = objects.find {|ob| ob.location == (obstacle.location - 2) && ob.type == obstacle.type && (ob.status == :NONE || ob.status == :GLASS || ob.status == :WOOD) }
         if !temp.nil?
           pairs << [obstacle.location, temp.location].sort
         end
       end
 
       if obstacle.location < (map_size - width) # + width
-        temp = objects.find {|ob| ob.location == (obstacle.location + width) && ob.type == obstacle.type && (ob.status == :NONE || ob.status == :GLASS) }
+        temp = objects.find {|ob| ob.location == (obstacle.location + width) && ob.type == obstacle.type && (ob.status == :NONE || ob.status == :GLASS || ob.status == :WOOD) }
          if !temp.nil?
           pairs << [obstacle.location, temp.location].sort
         end
       end
 
       if obstacle.location >= width # - width
-        temp = objects.find {|ob| ob.location == (obstacle.location - width) && ob.type == obstacle.type && (ob.status == :NONE || ob.status == :GLASS) }
+        temp = objects.find {|ob| ob.location == (obstacle.location - width) && ob.type == obstacle.type && (ob.status == :NONE || ob.status == :GLASS || ob.status == :WOOD) }
          if !temp.nil?
           pairs << [obstacle.location, temp.location].sort
         end
       end
 
       if obstacle.location < (map_size - (width * 2)) # + (width * 2)
-        temp = objects.find {|ob| ob.location == (obstacle.location + (width * 2)) && ob.type == obstacle.type && (ob.status == :NONE || ob.status == :GLASS) }
+        temp = objects.find {|ob| ob.location == (obstacle.location + (width * 2)) && ob.type == obstacle.type && (ob.status == :NONE || ob.status == :GLASS || ob.status == :WOOD) }
          if !temp.nil?
           pairs << [obstacle.location, temp.location].sort
         end
       end
 
       if obstacle.location >= width * 2 # - (width * 2)
-        temp = objects.find {|ob| ob.location == (obstacle.location - (width * 2)) && ob.type == obstacle.type && (ob.status == :NONE || ob.status == :GLASS) }
+        temp = objects.find {|ob| ob.location == (obstacle.location - (width * 2)) && ob.type == obstacle.type && (ob.status == :NONE || ob.status == :GLASS || ob.status == :WOOD) }
          if !temp.nil?
           pairs << [obstacle.location, temp.location].sort
         end
@@ -428,19 +437,6 @@ module MethodLoader
     end
 
     return items.sort
-  end
-
-  def self.find_obstacle_potential_matches(objects, width, map_size, pairs)
-    potentials = []
-
-    pairs.each do |pair|
-      obstacle = objects.find { |o| o.location == pair.first }
-      if (pair.first - pair.last).abs == 1
-        if pair.first % width > 0
-
-        end
-      end
-    end
   end
 
   def self.find_potential_matches(objects, width, map_size, pairs)
@@ -676,8 +672,6 @@ module MethodLoader
         end
       end
     end
-
-    status
     return pairs.uniq
   end
 
