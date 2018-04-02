@@ -218,11 +218,7 @@ module GameModule
       t = objects.find { |o| o.location == m }
       unless t.nil?
         temp = animation_data(t.type)
-
-        obj_new << UrbAnimation.new(
-          temp[0], temp[1], temp[2], t.fps, t.duration, true, t.x, t.y,
-          t.location, t.type, t.status, t.visible, t.active, t.cell
-        )
+        obj_new << UrbAnimation.new(temp[0], temp[1], temp[2], t.fps, t.duration, true, t.x, t.y, t.location, t.type, t.status, t.visible, t.active, t.cell)
       end
     end
     matched_objects_copy.concat obj_new
@@ -283,7 +279,7 @@ module GameModule
 
     return if obstacles.empty?
     obstacles.each do |obs|
-      next unless [Settings::OBSTACLE_STATE.find_index(:GLASS), Settings::OBSTACLE_STATE.find_index(:WOOD)].any? { |obstacle| obstacle == obs.status }
+      next unless [Settings::OBSTACLE_STATE.find_index(:GLASS), Settings::OBSTACLE_STATE.find_index(:WOOD), Settings::OBSTACLE_STATE.find_index(:CEMENT)].any? { |obstacle| obstacle == obs.status }
       if matches.include? obs.location
         obs.counter -= 1
         obs.change(obs.status)
@@ -326,9 +322,7 @@ module GameModule
     object_shuffle[0].each_with_index do |obj, i|
       destination = GameHelper::find_x_y_value_of_cell(object_shuffle[1][i], cells)
       if !(obj.x == destination.first && obj.y == destination.last)
-        obj.path.concat Path.new.create_path(obj.x, obj.y,
-                                                destination.first,
-                                                destination.last)
+        obj.path.concat Path.new.create_path(obj.x, obj.y, destination.first, destination.last)
         obj.animate_path
       end
     end

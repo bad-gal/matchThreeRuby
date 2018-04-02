@@ -196,6 +196,9 @@ class Main
     elsif @level_manager.wood?
       filename = 'assets/wood_100.png'
       status = Settings::OBSTACLE_STATE.find_index(:WOOD)
+    elsif @level_manager.cement?
+      filename = 'assets/cement_100.png'
+      status = Settings::OBSTACLE_STATE.find_index(:CEMENT)
     end
 
     tile_sq = @base_tiles.tile_square
@@ -452,8 +455,8 @@ class Main
 
   def setup_objects
     @urbs_in_level = @level_manager.urbs_in_level
-    # @objects = MethodLoader.create_urbs(@cells, @base_tiles, @level_manager, @obstacles)
-    @objects = MethodLoader.fake_urbs(@cells, @level, @base_tiles, @level_manager, @obstacles)
+    @objects = MethodLoader.create_urbs(@cells, @base_tiles, @level_manager, @obstacles)
+    # @objects = MethodLoader.fake_urbs(@cells, @level, @base_tiles, @level_manager, @obstacles)
   end
 
   def find_matches

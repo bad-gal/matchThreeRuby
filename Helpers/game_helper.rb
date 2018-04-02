@@ -86,8 +86,7 @@ module GameHelper
     puts "vacancies  = #{vacancies}"
     available_paths = []
     vacancies.each do |nv|
-      available_paths << graph.find_start_when_finish_known(nv.first, nv.last,
-                                                            map_width)
+      available_paths << graph.find_start_when_finish_known(nv.first, nv.last, map_width)
     end
     available_paths
   end
@@ -160,8 +159,7 @@ module GameHelper
     direction
   end
 
-  def self.set_new_vacancy_details(objects, homeless_objects, width, cells,
-                                   collapsed_matches, graph)
+  def self.set_new_vacancy_details(objects, homeless_objects, width, cells, collapsed_matches, graph)
     p new_vacancies = graph.get_vacancies
     new_vacancy_details = []
 
@@ -202,23 +200,15 @@ module GameHelper
         end
 
         m.animate_path
-        effects << Animation.new('assets/muzzle_flash.png', 50, 50, 30, 1200,
-                                 false, m.x, m.y)
+        effects << Animation.new('assets/muzzle_flash.png', 50, 50, 30, 1200, false, m.x, m.y)
       end
     end
   end
 
   def self.swap_check(urb_object1, urb_object2)
-    urb_object1.path.concat Path.new.create_path(urb_object1.x,
-                                                 urb_object1.y,
-                                                 urb_object2.x,
-                                                 urb_object2.y)
+    urb_object1.path.concat Path.new.create_path(urb_object1.x, urb_object1.y, urb_object2.x, urb_object2.y)
     urb_object1.animate_path
-
-    urb_object2.path.concat Path.new.create_path(urb_object2.x,
-                                                 urb_object2.y,
-                                                 urb_object1.x,
-                                                 urb_object1.y)
+    urb_object2.path.concat Path.new.create_path(urb_object2.x, urb_object2.y, urb_object1.x, urb_object1.y)
     urb_object2.animate_path
   end
 
@@ -244,8 +234,7 @@ module GameHelper
   end
 
   def self.set_move_down_path(move_down, move_to, objects, cells)
-    raise RunTimeError, 'main.rb: set_move_down_path' unless move_down.size ==
-                                                             move_to.size
+    raise RunTimeError, 'main.rb: set_move_down_path' unless move_down.size == move_to.size
     moveable_urbs = []
     move_down.each_with_index do |md, i|
       urb = objects.find { |o| o.cell == md }

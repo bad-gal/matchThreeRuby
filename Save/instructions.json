@@ -12,8 +12,10 @@
     { "level":"Level 9", "guide1": "Free the urbs trapped in Ice ", "guide2": "" },
     { "level":"Level 10", "guide1": "Score 5,500 points and free ", "guide2": "the urbs trapped in Ice" },
     { "level":"Level 11", "guide1": "Score 7,000 points ", "guide2": "" },
-    { "level":"Level 12", "guide1": "Free the urbs trapped in ", "guide2": "wooden containers"}
-
+    { "level":"Level 12", "guide1": "Free the urbs trapped in ", "guide2": "Wooden containers"},
+	{ "level":"Level 13", "guide1": "Free the urb trapped in Wood", "guide2": "and score 4000 points"},
+	{ "level":"Level 14", "guide1": "Free at least 4 urbs ", "guide2": "trapped in Wooden containers" },
+	{ "level":"Level 15", "guide1": "Free the urbs trapped in Cement", "guide2": "" }
   ],
   "gameplay": { "title": "How to play",
                 "line1": "Use the mouse to select 2",

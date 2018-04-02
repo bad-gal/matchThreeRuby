@@ -35,13 +35,14 @@ module MethodLoader
           elsif level_manager.wood?
             visible = :visible
             status = :WOOD
+          elsif level_manager.cement?
+            visible = :visible
+            status = :CEMENT
           end
         end
       end
-      objects << UrbAnimation.new(urb_hash[:file], tile_sq, tile_sq,
-                                  Settings::FPS, duration, true, x, y,
-                                  valid[:location], urb_hash[:type], status,
-                                  visible, active, valid[:cell])
+      objects << UrbAnimation.new(urb_hash[:file], tile_sq, tile_sq, Settings::FPS, duration, true, x, y,
+                                  valid[:location], urb_hash[:type], status, visible, active, valid[:cell])
     end
     objects
   end
@@ -129,6 +130,9 @@ module MethodLoader
           elsif level_manager.wood?
             visible = :visible
             status = :WOOD
+          elsif level_manager.cement?
+            visible = :visible
+            status = :CEMENT
           end
         end
       end
@@ -152,9 +156,7 @@ module MethodLoader
             objects[i].x = position.first
             start = [objects[i].x, objects[i].y]
           end
-          objects[i].path.concat Path.new.create_path(start.first, start.last,
-                                                      position.first,
-                                                      position.last)
+          objects[i].path.concat Path.new.create_path(start.first, start.last, position.first, position.last)
           start = objects[i].path.last
         end
       end
@@ -162,8 +164,7 @@ module MethodLoader
       objects[i].active = true
       objects[i].animate_path
       objects[i].change_cell(v[:path].last)
-      objects[i].location = GameHelper.find_location_of_cell(v[:path].last,
-                                                             cells)
+      objects[i].location = GameHelper.find_location_of_cell(v[:path].last, cells)
       graph.set_vacancy(objects[i].cell[0], objects[i].cell[1], true)
     end
   end
@@ -311,22 +312,22 @@ module MethodLoader
     end
   end
 
-  def self.find_matches_under_glass(obstacles, objects, width, map_size)
-    extract_glass_obstacles = []
+  def self.find_matches_under_obstacles(obstacles, objects, width, map_size)
+    extract_obstacles = []
 
     obstacles.each do |obstacle|
-      if [Settings::OBSTACLE_STATE.find_index(:GLASS), Settings::OBSTACLE_STATE.find_index(:WOOD)].any? { |obs| obs == obstacle.status }
-        glass_obstacle = objects.find { |o| o.location == obstacle.location && !o.off_screen }
-        if !glass_obstacle.nil?
-          extract_glass_obstacles << glass_obstacle
+      if [Settings::OBSTACLE_STATE.find_index(:GLASS), Settings::OBSTACLE_STATE.find_index(:WOOD), Settings::OBSTACLE_STATE.find_index(:CEMENT)].any? { |obs| obs == obstacle.status }
+        tile_obstacle = objects.find { |o| o.location == obstacle.location && !o.off_screen }
+        if !tile_obstacle.nil?
+          extract_obstacles << tile_obstacle
         end
       end
     end
 
-    pairs = find_obstacle_object_pairs(extract_glass_obstacles, objects, width, map_size)
+    pairs = find_obstacle_object_pairs(extract_obstacles, objects, width, map_size)
     testing_time = find_potential_matches(objects, width, map_size, pairs)
     find_potential_matches(objects, width, map_size, pairs)
-    remove_suggestions(testing_time, objects, extract_glass_obstacles, width)
+    remove_suggestions(testing_time, objects, extract_obstacles, width)
   end
 
   def self.remove_suggestions(array_data, objects, glass_obstacle, width)
@@ -353,56 +354,56 @@ module MethodLoader
 
     suitable_obstacle_objects.each do |obstacle| width
       if obstacle.location % width < (width - 1) # + 1
-        temp = objects.find {|ob| ob.location == (obstacle.location + 1) && ob.type == obstacle.type && (ob.status == :NONE || ob.status == :GLASS || ob.status == :WOOD) }
+        temp = objects.find {|ob| ob.location == (obstacle.location + 1) && ob.type == obstacle.type && (ob.status == :NONE || ob.status == :GLASS || ob.status == :WOOD || ob.status == :CEMENT) }
         if !temp.nil?
           pairs << [obstacle.location, temp.location].sort
         end
       end
 
       if obstacle.location % width > 0 # - 1
-        temp = objects.find {|ob| ob.location == (obstacle.location - 1) && ob.type == obstacle.type && (ob.status == :NONE || ob.status == :GLASS || ob.status == :WOOD) }
+        temp = objects.find {|ob| ob.location == (obstacle.location - 1) && ob.type == obstacle.type && (ob.status == :NONE || ob.status == :GLASS || ob.status == :WOOD || ob.status == :CEMENT) }
          if !temp.nil?
           pairs << [obstacle.location, temp.location].sort
         end
       end
 
       if obstacle.location % width < (width - 2) # + 2
-        temp = objects.find {|ob| ob.location == (obstacle.location + 2) && ob.type == obstacle.type && (ob.status == :NONE || ob.status == :GLASS || ob.status == :WOOD) }
+        temp = objects.find {|ob| ob.location == (obstacle.location + 2) && ob.type == obstacle.type && (ob.status == :NONE || ob.status == :GLASS || ob.status == :WOOD || ob.status == :CEMENT) }
          if !temp.nil?
           pairs << [obstacle.location, temp.location].sort
         end
       end
 
       if obstacle.location % width > 1 # - 2
-        temp = objects.find {|ob| ob.location == (obstacle.location - 2) && ob.type == obstacle.type && (ob.status == :NONE || ob.status == :GLASS || ob.status == :WOOD) }
+        temp = objects.find {|ob| ob.location == (obstacle.location - 2) && ob.type == obstacle.type && (ob.status == :NONE || ob.status == :GLASS || ob.status == :WOOD || ob.status == :CEMENT) }
         if !temp.nil?
           pairs << [obstacle.location, temp.location].sort
         end
       end
 
       if obstacle.location < (map_size - width) # + width
-        temp = objects.find {|ob| ob.location == (obstacle.location + width) && ob.type == obstacle.type && (ob.status == :NONE || ob.status == :GLASS || ob.status == :WOOD) }
+        temp = objects.find {|ob| ob.location == (obstacle.location + width) && ob.type == obstacle.type && (ob.status == :NONE || ob.status == :GLASS || ob.status == :WOOD || ob.status == :CEMENT) }
          if !temp.nil?
           pairs << [obstacle.location, temp.location].sort
         end
       end
 
       if obstacle.location >= width # - width
-        temp = objects.find {|ob| ob.location == (obstacle.location - width) && ob.type == obstacle.type && (ob.status == :NONE || ob.status == :GLASS || ob.status == :WOOD) }
+        temp = objects.find {|ob| ob.location == (obstacle.location - width) && ob.type == obstacle.type && (ob.status == :NONE || ob.status == :GLASS || ob.status == :WOOD || ob.status == :CEMENT) }
          if !temp.nil?
           pairs << [obstacle.location, temp.location].sort
         end
       end
 
       if obstacle.location < (map_size - (width * 2)) # + (width * 2)
-        temp = objects.find {|ob| ob.location == (obstacle.location + (width * 2)) && ob.type == obstacle.type && (ob.status == :NONE || ob.status == :GLASS || ob.status == :WOOD) }
+        temp = objects.find {|ob| ob.location == (obstacle.location + (width * 2)) && ob.type == obstacle.type && (ob.status == :NONE || ob.status == :GLASS || ob.status == :WOOD || ob.status == :CEMENT) }
          if !temp.nil?
           pairs << [obstacle.location, temp.location].sort
         end
       end
 
       if obstacle.location >= width * 2 # - (width * 2)
-        temp = objects.find {|ob| ob.location == (obstacle.location - (width * 2)) && ob.type == obstacle.type && (ob.status == :NONE || ob.status == :GLASS || ob.status == :WOOD) }
+        temp = objects.find {|ob| ob.location == (obstacle.location - (width * 2)) && ob.type == obstacle.type && (ob.status == :NONE || ob.status == :GLASS || ob.status == :WOOD || ob.status == :CEMENT) }
          if !temp.nil?
           pairs << [obstacle.location, temp.location].sort
         end
@@ -676,7 +677,7 @@ module MethodLoader
   end
 
   def self.all_potential_matches(objects, obstacles, map_width, map)
-    obstacle_matches = MethodLoader.find_matches_under_glass(obstacles, objects, map_width, map.size)
+    obstacle_matches = MethodLoader.find_matches_under_obstacles(obstacles, objects, map_width, map.size)
     pairs = MethodLoader.find_object_pairs(objects, map_width, map.size)
     potential_matches = MethodLoader.find_potential_matches(objects, map_width, map.size, pairs)
 

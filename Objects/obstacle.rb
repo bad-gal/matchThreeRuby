@@ -25,6 +25,8 @@ class Obstacle < Animation
       1
     when Settings::OBSTACLE_STATE.find_index(:WOOD)
       2
+    when Settings::OBSTACLE_STATE.find_index(:CEMENT)
+      4
     end
   end
 
@@ -39,7 +41,6 @@ class Obstacle < Animation
       looped = false
       change_image_and_loop(filename, looped)
     when Settings::OBSTACLE_STATE.find_index(:WOOD)
-      p 'num until destroyed == ', @num_til_destroyed
       if @counter.zero?
         filename = 'assets/wood_break_anim.png'
         looped = false
@@ -48,7 +49,21 @@ class Obstacle < Animation
         filename = 'assets/wood_25.png'
         change_image(filename)
       end
+    when Settings::OBSTACLE_STATE.find_index(:CEMENT)
+      if @counter.zero?
+        filename = 'assets/cement_break_anim.png'
+        looped = false
+        change_image_and_loop(filename, looped)
+      elsif @counter == 1
+        filename = 'assets/cement_25.png'
+        change_image(filename)
+      elsif @counter == 2
+        filename = 'assets/cement_50.png'
+        change_image(filename)
+      elsif @counter == 3
+        filename = 'assets/cement_75.png'
+        change_image(filename)
+      end
     end
-
   end
 end
