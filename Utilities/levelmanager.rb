@@ -26,8 +26,10 @@ class Levelmanager
     case @level
     when 1, 3, 4, 6, 7, 8, 9, 10, 12, 13
       5
-    when 2, 5, 11, 14, 15
+    when 2, 5, 11, 14, 15, 17, 18
       6
+    when 16
+      7
     end
   end
 
@@ -71,12 +73,18 @@ class Levelmanager
       score_setter(moves: 30, wood: 4)
     when 15
       score_setter(moves: 20, cement: 3)
+    when 16
+      score_setter(moves: 100, min_score: 8000)
+    when 17
+      score_setter(moves: 25, wood: 5)
+    when 18
+      score_setter(moves: 100, cement: 5)
     end
   end
 
   def level_completed?
     case @level
-    when 1, 2, 5, 6, 11
+    when 1, 2, 5, 6, 11, 16
       if @scores[:score] >= @scores[:min_score]
        return :success
       elsif @scores[:moves] == 0
@@ -106,13 +114,13 @@ class Levelmanager
       elsif @scores[:moves] == 0
         return :fail
       end
-    when 14
+    when 14, 17
       if @scores[:wood_counter] >= @scores[:wood]
         return :success
       elsif @scores[:moves] == 0
         return :fail
       end
-    when 15
+    when 15, 18
       if @scores[:cement_counter] == @scores[:cement]
         return :success
       elsif @scores[:moves] == 0
@@ -124,7 +132,7 @@ class Levelmanager
 
   def move_level?
     case @level
-    when 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15
+    when 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18
       return true
     end
     false
@@ -163,6 +171,10 @@ class Levelmanager
       locations.push(14, 20, 22, 26, 30, 32, 38)
     when 15
       locations.push(23, 24, 25)
+    when 17
+      locations.push(22, 23, 24, 25, 26)
+    when 18
+      locations.push(10, 17, 24, 31, 38)
     end
     locations
   end
@@ -215,6 +227,15 @@ class Levelmanager
     when 15
       [0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1,
        1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0]
+    when 16
+      [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1,
+       1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+    when 17
+      [0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+       1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 1, 0, 0]
+    when 18
+      [0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+       1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 1, 0, 0]
     end
   end
 
@@ -234,7 +255,7 @@ class Levelmanager
       map_setter(width: 5, height: 7, map_level: map_structure)
     when 14
       map_setter(width: 7, height: 6, map_level: map_structure)
-    when 15
+    when 15, 16, 17, 18
       map_setter(width: 7, height: 7, map_level: map_structure)
     end
   end
