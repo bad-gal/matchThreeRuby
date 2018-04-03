@@ -18,7 +18,9 @@
 	{ "level":"Level 15", "guide1": "Free the urbs trapped in Cement", "guide2": "" },
 	{ "Level":"Level 16", "guide1": "Score 8,000 points", "guide2": ""},
 	{ "Level":"Level 17", "guide1": "Free the urbs trapped in ", "guide2": "Wooden containers"},
-	{ "Level":"Level 18", "guide1": "Free the urbs trapped in Cement", "guide2": ""}
+	{ "Level":"Level 18", "guide1": "Free the urbs trapped in Cement", "guide2": ""},
+	{ "Level":"Level 19", "guide1": "Score 6,050 points", "guide2": "and collect 35 Urbs"},
+	{ "Level":"Level 20", "guide1": "Collect 50 Urbs", "guide2": ""}
   ],
   "gameplay": { "title": "How to play",
                 "line1": "Use the mouse to select 2",

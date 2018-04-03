@@ -11,7 +11,7 @@ class Levelmanager
         pac_counter: 0, baby_counter: 0, nerd_counter: 0, lady_counter: 0,
         punk_counter: 0, rocker_counter: 0, girl_nerd_counter: 0,
         pigtails_counter: 0, glass_counter: 0, wood_counter: 0,
-        cement_counter: 0
+        cement_counter: 0, urb_counter: 0
       },
       min_score: 0,
       max_timer: 0,
@@ -26,7 +26,7 @@ class Levelmanager
     case @level
     when 1, 3, 4, 6, 7, 8, 9, 10, 12, 13
       5
-    when 2, 5, 11, 14, 15, 17, 18
+    when 2, 5, 11, 14, 15, 17, 18, 19, 20
       6
     when 16
       7
@@ -74,11 +74,15 @@ class Levelmanager
     when 15
       score_setter(moves: 20, cement: 3)
     when 16
-      score_setter(moves: 100, min_score: 8000)
+      score_setter(moves: 22, min_score: 8000)
     when 17
       score_setter(moves: 25, wood: 5)
     when 18
-      score_setter(moves: 100, cement: 5)
+      score_setter(moves: 30, cement: 5)
+    when 19
+      score_setter(moves: 100, min_score: 6050, urb_counter: 35)
+    when 20
+      score_setter(moves: 100, urb_counter: 50)
     end
   end
 
@@ -126,13 +130,25 @@ class Levelmanager
       elsif @scores[:moves] == 0
         return :fail
       end
+    when 19
+      if @scores[:score] >= @scores[:min_score] && @scores[:counters][:urb_counter] >= 35
+       return :success
+      elsif @scores[:moves] == 0
+       return :fail
+      end
+    when 20
+      if @scores[:counters][:urb_counter] >= 50
+        return :success
+      elsif @scores[:moves] == 0
+        return :fail
+      end
     end
     :pending
   end
 
   def move_level?
     case @level
-    when 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18
+    when 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20
       return true
     end
     false
@@ -236,6 +252,12 @@ class Levelmanager
     when 18
       [0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 1, 0, 0]
+    when 19
+      [1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1,
+       0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1]
+    when 20
+      [1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1,
+       0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1]
     end
   end
 
@@ -255,8 +277,10 @@ class Levelmanager
       map_setter(width: 5, height: 7, map_level: map_structure)
     when 14
       map_setter(width: 7, height: 6, map_level: map_structure)
-    when 15, 16, 17, 18
+    when 15, 16, 17, 18, 20
       map_setter(width: 7, height: 7, map_level: map_structure)
+    when 19
+      map_setter(width: 6, height: 7, map_level: map_structure)
     end
   end
 
@@ -296,5 +320,12 @@ class Levelmanager
     when :punk
       @scores[:counters][:punk_counter] += 1
     end
+    urb_calculation
+  end
+
+  def urb_calculation
+    @scores[:counters][:urb_counter] = @scores[:counters][:pac_counter] + @scores[:counters][:pigtails_counter] +
+    @scores[:counters][:nerd_counter] + @scores[:counters][:girl_nerd_counter] + @scores[:counters][:rocker_counter] +
+    @scores[:counters][:lady_counter] + @scores[:counters][:baby_counter] + @scores[:counters][:punk_counter]
   end
 end
