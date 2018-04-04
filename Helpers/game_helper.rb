@@ -273,6 +273,63 @@ module GameHelper
     paths.first
   end
 
+  def self.most_suitable_path2(vacancy, graph, map_width)
+    paths = []
+    unless vacancy.last.zero?
+      0.upto(map_width - 1) do |x|
+        paths << graph.shortest_path_no_occupants(x, 0, vacancy.first, vacancy.last)
+      end
+
+      # element must end with the destination, otherwise delete path
+      paths.reverse_each do |path|
+        paths.delete(path) unless graph.get_vacancies.include?(path.last)
+      end
+
+      # remove any paths that contain obstacles
+      paths.reverse_each do |path|
+        path.each do |pa|
+          paths.delete(path) if graph.get_obstacles.include?(pa) #|| !graph.get_vacancies.include?(pa) # a change made here
+        end
+      end
+    end
+
+    paths.sort_by!(&:length) if paths.size > 1
+    p paths
+    paths.first
+  end
+
+  def self.viable_objects2(vacancies, graph, map_width)
+    p "viable objects 2"
+    p "vacancies = #{vacancies.reverse}"
+    path = []
+    vacancies.reverse_each do |v|
+      path << if v.last.zero?
+                []
+              else
+                most_suitable_path2(v, graph, map_width)
+              end
+    end
+
+    viable = []
+    vacancies.reverse.each_with_index do |v, i|
+      if !path[i].nil?
+        if !path[i].empty?
+          viable << { vacancy: v, path: path[i] }
+        elsif (v[1]).zero? && !graph.get_obstacles.include?(v)
+          viable << { vacancy: v, path: [v] }
+        end
+      end
+    end
+
+    # must do check if column is removed and has invisible cells above
+    if viable.empty?
+      p 'checking if there is a viable exception...'
+      exception = viable_exceptions(vacancies, graph)
+      p viable = exception unless exception.empty?
+    end
+    viable
+  end
+
   def self.viable_objects(vacancies, graph, map_width)
     path = []
     vacancies.each do |v|

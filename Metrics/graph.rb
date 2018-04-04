@@ -218,6 +218,77 @@ class Graph
     route
   end
 
+  def shortest_path_no_occupants(start_x, start_y, finish_x, finish_y)
+
+  	def heuristic(current, target)
+  		return [(current.x - target.x).abs, (current.y - target.y).abs].max
+  	end
+
+  	start = @grid[start_y][start_x]
+  	finish = @grid[finish_y][finish_x]
+
+    visited = Set.new # The set of cells already evaluated
+
+    previous = {} # Previous cell in optimal path from source
+    previous[start] = 0
+    f_score = PriorityQueue.new
+
+    # All possible ways to go in a cell
+    dx = [1, 0, -1]
+    dy = [0, 1,  0]
+
+    start. calculate_g_score(0) # Cost from start along best known path
+    # Estimated total cost from start to finish
+    f_score[start] = start.g_score + heuristic(start, finish)
+
+    while !f_score.empty?
+      current = f_score.delete_min_return_key # cell with smallest f_score
+      visited.add(current)
+
+      if current == finish
+        path = Set.new
+
+				while previous[current]
+          path.add(current)
+          current = previous[current]
+        end
+        reset_score
+        return get_path(path)
+      end
+
+      # Examine all directions for the next path to take
+      for direction in 0..2
+
+        new_x = current.x + dx[direction]
+        new_y = current.y + dy[direction]
+        # Check for out of bounds
+        if new_x < 0 or new_x > @width or new_y < 0 or new_y > @height
+          next # Try next configuration
+        end
+
+        neighbor = @grid[new_y][new_x]
+
+        # Check if we've been to a cell or if it is an obstacle
+        if visited.include? neighbor or f_score.has_key? neighbor or neighbor.obstacle or neighbor.occupied
+          next
+        end
+
+        # traveled so far + distance to next cell vertical or horizontal
+        tentative_g_score = current.g_score + 10
+
+        # If there is a new shortest path update our priority queue (relax)
+        if tentative_g_score < neighbor.g_score
+          previous[neighbor] =  current
+          neighbor. calculate_g_score(tentative_g_score)
+          f_score[neighbor] = neighbor.g_score + heuristic(neighbor, finish)
+        end
+      end
+    end
+
+    reset_score
+    []
+  end
+
   def get_graph
     @grid.each do |grid|
       grid.each do |g|

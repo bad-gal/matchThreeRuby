@@ -634,35 +634,59 @@ class Main
   def add_new_objects
     if @counter.zero?
       vacancies = @graph.get_vacancies
-      viable = GameHelper.viable_objects(vacancies, @graph, @map_width)
-      return no_viable_objects if viable.empty?
-      @returning_objects = @objects.find_all(&:off_screen).take(viable.size)
-      blocking_urbs = MethodLoader.show_blocking_objects(viable, @graph, @obstacles)
-
+      @viable = GameHelper.viable_objects(vacancies, @graph, @map_width)
+      return no_viable_objects if @viable.empty?
+      @returning_objects = @objects.find_all(&:off_screen).take(@viable.size)
+      blocking_urbs = MethodLoader.show_blocking_objects(@viable, @graph, @obstacles)
+      @counter = 1
+      @index = -1
       unless blocking_urbs.empty?
+        # will need to move this into it's own section as it is inside @counter = 0 when I am setting it to @counter = 10
         p "WE HAVE ENCOUNTERED BLOCKED URBS!!!"
-        affected = MethodLoader.affected_paths(viable, blocking_urbs)
-        p "affected -> "
-        p affected = MethodLoader.sort_paths(affected)
-        MethodLoader.move_blocking_urbs(affected, blocking_urbs, @objects, @cells, @graph, @obstacles)
-        p "new vacancies -> #{@graph.get_vacancies}"
-        p viable = GameHelper.viable_objects(@graph.get_vacancies, @graph, @map_width)
-        p " "
-        p "new viables -> #{viable}"
+        if @index == -1
+          @counter = 10
+          @affected = MethodLoader.affected_paths(@viable, blocking_urbs)
+          @affected = MethodLoader.sort_paths(@affected)
+          p @affected.size
+          @index = 0
+        end
       end
 
-      MethodLoader.move_new_objects(@returning_objects, viable, @urbs_in_level, @graph, @cells)
-      @counter = 1
-
     elsif @counter == 1
-      complete = GameHelper.objects_in_place(@objects) #@returning_objects
-      @counter = 2 if complete == @objects.size
+        MethodLoader.move_new_objects(@returning_objects, @viable, @urbs_in_level, @graph, @cells)
+        @counter = 2
 
     elsif @counter == 2
+      complete = GameHelper.objects_in_place(@objects) #@returning_objects
+      @counter = 3 if complete == @objects.size
+
+    elsif @counter == 3
       p 'objects moved into new positions'
       @returning_objects.clear
       clear_viable_variables
       @counter = 0
+    end
+
+    if @counter == 10
+      MethodLoader.move_blocking_urbs(@affected[@index], blocking_urbs, @objects, @cells, @graph, @obstacles, @affected)
+      @counter = 11
+    end
+
+    if @counter == 11
+      # p @objects.map(&:path).uniq.flatten
+      if @objects.map(&:path).uniq.flatten.empty?
+        @index += 1
+        @counter = 10
+        if @index == @affected.size
+          @counter = 12
+          p 'blocking urbs size ->', blocking_urbs
+        end
+      end
+    end
+
+    if @counter == 12
+      @viable = GameHelper.viable_objects2(@graph.get_vacancies, @graph, @map_width)
+      @counter = 1
     end
   end
 
@@ -686,6 +710,8 @@ class Main
     @starting_points = []
     @new_vacancies = []
     @objects.sort_by!(&:location)
+    @viable.clear
+    @affected.clear unless @affected.nil?
     initial_state
   end
 

@@ -145,7 +145,7 @@ module MethodLoader
 
   def self.move_new_objects(objects, viable, urbs_in_level, graph, cells)
     GameModule.change_object_type(objects, 0, urbs_in_level)
-
+    p "viable move new objects -> #{viable}"
     viable.each_with_index do |v, i|
       start = [objects[i].x, objects[i].y]
       v[:path].each_with_index do |path, num|
@@ -257,12 +257,44 @@ module MethodLoader
     return affected
   end
 
-  def self.move_blocking_urbs(affected, blocking_urbs, objects, cells, graph, obstacles)
+  def self.move_blocking_urbs(affect, blocking_urbs, objects, cells, graph, obstacles, affected)
     arr = []
-    affected.each do |affect|
-      blocking_urbs = blocking_affect(affect, graph, obstacles)
-      p affect
-      puts "blocking urbs -> #{blocking_urbs}"
+
+    blocking_urbs = blocking_affect(affect, graph, obstacles)
+    p affect
+    puts "blocking urbs -> #{blocking_urbs}"
+    if blocking_urbs.empty?
+      p "path is no longer blocked"
+      # if no elements from path are contained in blocking_urbs
+      p "affect path = #{affect[:path]}"
+      affect[:path].each do |node|
+        to_move = objects.find { |ob| ob.cell == node && !ob.off_screen }
+        unless to_move.nil?
+          arr << to_move unless arr.include?(to_move)
+          if to_move.path.empty?
+            move_x = to_move.x
+            move_y = to_move.y
+          else
+            move_x = to_move.path.last[0]
+            move_y = to_move.path.last[1]
+          end
+
+          pos = GameHelper.find_x_y_value_of_cell(node, cells)
+          new_path = Path.new.create_path(move_x, move_y, pos.first, pos.last)
+          to_move.path.concat Path.new.create_path(move_x, move_y, pos.first, pos.last)
+          move_x = pos.first
+          move_y = pos.last
+
+          if node == affect[:path].last
+            to_move.animate_path
+            graph.set_vacancy(affect[:path].last[0], affect[:path].last[1], true)
+            to_move.location = GameHelper.find_location_of_cell(affect[:path].last, cells)
+            to_move.change_cell(affect[:path].last)
+          end
+        end
+      end
+
+    else
       affect[:path].reverse_each do |node|
         if blocking_urbs.include?(node)
           to_move = objects.find { |ob| ob.cell == node && !ob.off_screen }
@@ -282,9 +314,9 @@ module MethodLoader
             start.upto(finish) do |inc|
               pos = GameHelper.find_x_y_value_of_cell(affect[:path][inc], cells)
               new_path = Path.new.create_path(move_x, move_y, pos.first, pos.last)
-                to_move.path.concat Path.new.create_path(move_x, move_y, pos.first, pos.last)
-                move_x = pos.first
-                move_y = pos.last
+              to_move.path.concat Path.new.create_path(move_x, move_y, pos.first, pos.last)
+              move_x = pos.first
+              move_y = pos.last
             end
             to_move.animate_path
             graph.set_vacancy(node.first, node.last, false)
@@ -296,11 +328,56 @@ module MethodLoader
         end
       end
     end
+
     arr.each do |a|
       a.reset_keyframes
     end
   end
 
+  # def self.move_blocking_urbs(affected, blocking_urbs, objects, cells, graph, obstacles)
+#     arr = []
+#     affected.each do |affect|
+#       blocking_urbs = blocking_affect(affect, graph, obstacles)
+#       p affect
+#       puts "blocking urbs -> #{blocking_urbs}"
+#       affect[:path].reverse_each do |node|
+#         if blocking_urbs.include?(node)
+#           to_move = objects.find { |ob| ob.cell == node && !ob.off_screen }
+#           unless to_move.nil?
+#             arr << to_move unless arr.include?(to_move)
+#             if to_move.path.empty?
+#               p "was empty path"
+#               move_x = to_move.x
+#               move_y = to_move.y
+#             else
+#               p "path not empty for cell #{node}"
+#               move_x = to_move.path.last[0]
+#               move_y = to_move.path.last[1]
+#             end
+#             start = affect[:path].find_index(node)
+#             finish = affect[:path].find_index(affect[:path].last)
+#             start.upto(finish) do |inc|
+#               pos = GameHelper.find_x_y_value_of_cell(affect[:path][inc], cells)
+#               new_path = Path.new.create_path(move_x, move_y, pos.first, pos.last)
+#                 to_move.path.concat Path.new.create_path(move_x, move_y, pos.first, pos.last)
+#                 move_x = pos.first
+#                 move_y = pos.last
+#             end
+#             to_move.animate_path
+#             graph.set_vacancy(node.first, node.last, false)
+#             graph.set_vacancy(affect[:path].last[0], affect[:path].last[1], true)
+#             to_move.location = GameHelper.find_location_of_cell(affect[:path].last, cells)
+#             to_move.change_cell(affect[:path].last)
+#             find_last_path_cells_that_match(affected, affect[:path].last)
+#           end
+#         end
+#       end
+#     end
+#     arr.each do |a|
+#       a.reset_keyframes
+#     end
+#   end
+#
   def self.find_last_path_cells_that_match(viable_objects, cell)
     viable_objects.reverse.each_with_index do |object, i|
       if object[:path].last == cell
