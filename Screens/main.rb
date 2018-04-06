@@ -1,6 +1,7 @@
 require_relative '../Helpers/game_module'
 require_relative '../Helpers/game_helper'
 require_relative '../Helpers/method_loader'
+require_relative '../Helpers/shuffle_helper'
 require_relative '../Utilities/levelmanager'
 require_relative '../Objects/basetiles'
 require_relative '../Objects/animation'
@@ -336,7 +337,7 @@ class Main
     case @stage
     when STAGE.find_index(:check)
       @shuffling_mode = 1
-      @object_shuffle = GameModule.check_shuffle(@objects, @cells)
+      @object_shuffle = ShuffleHelper.check_shuffle(@objects, @cells)
       @stage = STAGE.find_index(:rearrange)
     when STAGE.find_index(:rearrange)
       complete = 0
@@ -345,19 +346,18 @@ class Main
       end
 
       if complete == @object_shuffle[0].size
-        p 'shuffle complete'
-        @object_shuffle[1].each_with_index do |cell, i|
-          location = GameHelper.find_location_of_cell(cell, @cells)
-          @object_shuffle[0][i].location = location
-          @object_shuffle[0][i].change_cell(cell)
-        end
-        @objects.sort_by! { |i| i.location }
-        @shuffling_mode = 0
-        @shuffle_timer = 0
-        @counter = 0
+        ShuffleHelper.assign_shuffle_locations(@object_shuffle, @cells)
+        clear_shuffle_values
         initial_state
       end
     end
+  end
+
+  def clear_shuffle_values
+    @objects.sort_by! { |i| i.location }
+    @shuffling_mode = 0
+    @shuffle_timer = 0
+    @counter = 0
   end
 
   def ready_state
@@ -713,21 +713,6 @@ class Main
     @viable.clear
     @affected.clear unless @affected.nil?
     initial_state
-  end
-
-  def check_shuffle(objects, cells)
-    object_shuffle = GameModule::objects_to_shuffle(objects)
-
-    object_shuffle.each do |obj|
-      destination = GameModule::find_x_y_value_of_cell(obj[1], cells)
-      if !(obj[0].x == destination.first && obj[0].y == destination.last)
-        obj[0].path.concat Path.new.create_path(obj[0].x, obj[0].y,
-                                                destination.first,
-                                                destination.last)
-        obj[0].animate_path
-      end
-    end
-    object_shuffle
   end
 
   def delete_after_use
