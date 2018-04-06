@@ -6,56 +6,84 @@ module PossibleMoves
 
     suitable_obstacle_objects.each do |obstacle| width
       if obstacle.location % width < (width - 1) # + 1
-        temp = objects.find {|ob| ob.location == (obstacle.location + 1) && ob.type == obstacle.type && (ob.status == :NONE || ob.status == :GLASS || ob.status == :WOOD || ob.status == :CEMENT) }
+        temp = objects.find {|ob| ob.location == (obstacle.location + 1) && ob.type == obstacle.type && ob.status == :NONE }
         if !temp.nil?
           pairs << [obstacle.location, temp.location].sort
         end
       end
 
       if obstacle.location % width > 0 # - 1
-        temp = objects.find {|ob| ob.location == (obstacle.location - 1) && ob.type == obstacle.type && (ob.status == :NONE || ob.status == :GLASS || ob.status == :WOOD || ob.status == :CEMENT) }
+        temp = objects.find {|ob| ob.location == (obstacle.location - 1) && ob.type == obstacle.type && ob.status == :NONE }
          if !temp.nil?
           pairs << [obstacle.location, temp.location].sort
         end
       end
 
       if obstacle.location % width < (width - 2) # + 2
-        temp = objects.find {|ob| ob.location == (obstacle.location + 2) && ob.type == obstacle.type && (ob.status == :NONE || ob.status == :GLASS || ob.status == :WOOD || ob.status == :CEMENT) }
+        temp = objects.find {|ob| ob.location == (obstacle.location + 2) && ob.type == obstacle.type && ob.status == :NONE }
          if !temp.nil?
           pairs << [obstacle.location, temp.location].sort
         end
       end
 
       if obstacle.location % width > 1 # - 2
-        temp = objects.find {|ob| ob.location == (obstacle.location - 2) && ob.type == obstacle.type && (ob.status == :NONE || ob.status == :GLASS || ob.status == :WOOD || ob.status == :CEMENT) }
+        temp = objects.find {|ob| ob.location == (obstacle.location - 2) && ob.type == obstacle.type && ob.status == :NONE }
         if !temp.nil?
           pairs << [obstacle.location, temp.location].sort
         end
       end
 
       if obstacle.location < (map_size - width) # + width
-        temp = objects.find {|ob| ob.location == (obstacle.location + width) && ob.type == obstacle.type && (ob.status == :NONE || ob.status == :GLASS || ob.status == :WOOD || ob.status == :CEMENT) }
+        temp = objects.find {|ob| ob.location == (obstacle.location + width) && ob.type == obstacle.type && ob.status == :NONE }
          if !temp.nil?
           pairs << [obstacle.location, temp.location].sort
         end
       end
 
       if obstacle.location >= width # - width
-        temp = objects.find {|ob| ob.location == (obstacle.location - width) && ob.type == obstacle.type && (ob.status == :NONE || ob.status == :GLASS || ob.status == :WOOD || ob.status == :CEMENT) }
+        temp = objects.find {|ob| ob.location == (obstacle.location - width) && ob.type == obstacle.type && ob.status == :NONE }
+         if !temp.nil?
+          pairs << [obstacle.location, temp.location].sort
+        end
+      end
+
+      if obstacle.location < (map_size - (width + 1)) && obstacle.location % width < (width - 1) # + (width + 1)
+        temp = objects.find {|ob| ob.location == (obstacle.location + (width + 1)) && ob.type == obstacle.type && ob.status == :NONE }
+         if !temp.nil?
+          pairs << [obstacle.location, temp.location].sort
+        end
+      end
+
+      if obstacle.location < (map_size - (width - 1)) && obstacle.location % width > 0 # + (width - 1)
+        temp = objects.find {|ob| ob.location == (obstacle.location + (width - 1)) && ob.type == obstacle.type && ob.status == :NONE }
+         if !temp.nil?
+          pairs << [obstacle.location, temp.location].sort
+        end
+      end
+
+      if obstacle.location >= width && obstacle.location % width < (width - 1) # - (width - 1)
+        temp = objects.find {|ob| ob.location == (obstacle.location - (width - 1)) && ob.type == obstacle.type && ob.status == :NONE }
+         if !temp.nil?
+          pairs << [obstacle.location, temp.location].sort
+        end
+      end
+
+      if obstacle.location >= width && obstacle.location % width > 0 # - (width + 1)
+        temp = objects.find {|ob| ob.location == (obstacle.location - width - 1) && ob.type == obstacle.type && ob.status == :NONE }
          if !temp.nil?
           pairs << [obstacle.location, temp.location].sort
         end
       end
 
       if obstacle.location < (map_size - (width * 2)) # + (width * 2)
-        temp = objects.find {|ob| ob.location == (obstacle.location + (width * 2)) && ob.type == obstacle.type && (ob.status == :NONE || ob.status == :GLASS || ob.status == :WOOD || ob.status == :CEMENT) }
+        temp = objects.find {|ob| ob.location == (obstacle.location + (width * 2)) && ob.type == obstacle.type && ob.status == :NONE }
          if !temp.nil?
           pairs << [obstacle.location, temp.location].sort
         end
       end
 
       if obstacle.location >= width * 2 # - (width * 2)
-        temp = objects.find {|ob| ob.location == (obstacle.location - (width * 2)) && ob.type == obstacle.type && (ob.status == :NONE || ob.status == :GLASS || ob.status == :WOOD || ob.status == :CEMENT) }
+        temp = objects.find {|ob| ob.location == (obstacle.location - (width * 2)) && ob.type == obstacle.type && ob.status == :NONE }
          if !temp.nil?
           pairs << [obstacle.location, temp.location].sort
         end
@@ -64,51 +92,75 @@ module PossibleMoves
 
     return pairs.uniq
   end
-  
-  def self.collate_list(objects, width, urb, pair, location, location_sum)
-    items = []
 
-    temp = objects.find { |o| o.location == location + location_sum && !o.off_screen }
-    if !temp.nil?
-      if temp.status == :NONE
-        arr = []
-        if (temp.location + location_sum) / width == temp.location / width
-          arr << [temp.location + width, temp.location - width, temp.location + location_sum]
-        else
-          arr << [temp.location + width, temp.location - width]
-        end
-
-        arr.flatten.each do |a|
-          ob = objects.find { |i| i.location == a }
-          if !ob.nil?
-            if ob.status == :NONE && ob.type == urb.type
-              items << [ob.location, pair.first, pair.last]
-            end
-          end
-        end
-      end
-    end
-
-    return items.sort
-  end
-  
   def self.find_potential_matches(objects, width, map_size, pairs)
     potentials = []
 
     pairs.each do |pair|
       urb = objects.find { |o| o.location == pair.first }
+
       if (pair.first - pair.last).abs == 1
-        if pair.first % width > 0
-          temp = collate_list(objects, width, urb, pair, pair.first, -1)
-          temp.each do |t|
-            potentials << t
+        mid_cell = objects.find { |m| m.location == pair.last + 1 }
+
+        if !mid_cell.nil? && mid_cell.status == :NONE
+
+          if pair.last % width < (width - 2)
+            temp = objects.find { |o| o.location == pair.last + 2 }
+            if !temp.nil?
+              if temp.type == urb.type && temp.status == :NONE
+                potentials << [temp.location, pair.first, pair.last].sort
+              end
+            end
+          end
+
+          if pair.last % width < (width - 1) && pair.first >= width
+            temp = objects.find { |o| o.location == pair.last - (width - 1) }
+            if !temp.nil?
+              if temp.type == urb.type && temp.status == :NONE
+                potentials << [temp.location, pair.first, pair.last].sort
+              end
+            end
+          end
+
+          if pair.last % width < (width - 1) && pair.last < (map_size - width)
+            temp = objects.find { |o| o.location == pair.last + (width + 1) }
+            if !temp.nil?
+              if temp.type == urb.type && temp.status == :NONE
+                potentials << [temp.location, pair.first, pair.last].sort
+              end
+            end
           end
         end
 
-        if pair.last % width < (width - 1)
-          temp = collate_list(objects, width, urb, pair, pair.last, 1)
-          temp.each do |t|
-            potentials << t
+        mid_cell = objects.find { |m| m.location == pair.first - 1 }
+
+        if !mid_cell.nil? && mid_cell.status == :NONE
+
+          if pair.first % width > 1
+            temp = objects.find { |o| o.location == pair.first - 2 }
+            if !temp.nil?
+              if temp.type == urb.type && temp.status == :NONE
+                potentials << [temp.location, pair.first, pair.last].sort
+              end
+            end
+          end
+
+          if pair.first % width > 0 && pair.first > width
+            temp = objects.find { |o| o.location == pair.first - (width + 1) }
+            if !temp.nil?
+              if temp.type == urb.type && temp.status == :NONE
+                potentials << [temp.location, pair.first, pair.last].sort
+              end
+            end
+          end
+
+          if pair.last < (map_size - width) && pair.first % width > 0
+            temp = objects.find { |o| o.location == pair.first + (width - 1) }
+            if !temp.nil?
+              if temp.type == urb.type && temp.status == :NONE
+                potentials << [temp.location, pair.first, pair.last].sort
+              end
+            end
           end
         end
       end
@@ -120,7 +172,8 @@ module PossibleMoves
           if pair.first % width > 0
             temp = objects.find { |o| o.location == pair.first - 1 }
             if !temp.nil?
-              if temp.status == :NONE && temp.type == urb.type
+              moveable_object = objects.find { |o| o.location == pair.last }
+              if temp.type == urb.type && moveable_object.status == :NONE
                 potentials << [temp.location, pair.first, pair.last].sort
               end
             end
@@ -129,7 +182,7 @@ module PossibleMoves
           if pair.first >= width
             temp = objects.find { |o| o.location == pair.first - (width - 1) }
             if !temp.nil?
-              if temp.status == :NONE && temp.type == urb.type
+              if temp.type == urb.type && temp.status == :NONE
                 potentials << [temp.location, pair.first, pair.last].sort
               end
             end
@@ -138,7 +191,7 @@ module PossibleMoves
           if pair.first < (map_size - width)
             temp = objects.find { |o| o.location == pair.first + (width + 1) }
             if !temp.nil?
-              if temp.status == :NONE && temp.type == urb.type
+              if temp.type == urb.type && temp.status == :NONE
                 potentials << [pair.first, pair.last, temp.location].sort
               end
             end
@@ -147,13 +200,13 @@ module PossibleMoves
           if pair.last < (width - 1)
             temp = objects.find { |o| o.location == pair.last + 1 }
             if !temp.nil?
-              if temp.status == :NONE && temp.type == urb.type
+              moveable_object = objects.find { |o| o.location == pair.first }
+              if temp.type == urb.type && moveable_object.status == :NONE
                 potentials << [pair.first, pair.last, temp.location].sort
               end
             end
           end
         end
-
       end
 
       if (pair.first - pair.last).abs == width
@@ -163,7 +216,7 @@ module PossibleMoves
           if pair.first >= (width * 2)
             temp = objects.find { |o| o.location == (pair.first - (width * 2)) }
             if !temp.nil?
-              if temp.status == :NONE && temp.type == urb.type
+              if temp.type == urb.type && temp.status == :NONE
                 potentials << [pair.first, pair.last, temp.location].sort
               end
             end
@@ -172,7 +225,7 @@ module PossibleMoves
           if pair.first > width && pair.first % width > 0
             temp = objects.find { |o| o.location == (pair.first - (width + 1)) }
             if !temp.nil?
-              if temp.status == :NONE && temp.type == urb.type
+              if temp.type == urb.type && temp.status == :NONE
                 potentials << [pair.first, pair.last, temp.location].sort
               end
             end
@@ -181,7 +234,7 @@ module PossibleMoves
           if pair.first % width < (width -1) && pair.first > width
             temp = objects.find { |o| o.location == (pair.first - (width - 1)) }
             if !temp.nil?
-              if temp.status == :NONE && temp.type == urb.type
+              if temp.type == urb.type && temp.status == :NONE
                 potentials << [pair.first, pair.last, temp.location].sort
               end
             end
@@ -189,11 +242,13 @@ module PossibleMoves
         end
 
         mid_cell = objects.find { |m| m.location == (pair.last + width) }
+
         if !mid_cell.nil? && mid_cell.status == :NONE
+
           if pair.last < (map_size - (width * 2))
             temp = objects.find { |o| o.location == (pair.last + (width * 2)) }
             if !temp.nil?
-              if temp.status == :NONE && temp.type == urb.type
+              if temp.type == urb.type && temp.status == :NONE
                 potentials << [pair.first, pair.last, temp.location].sort
               end
             end
@@ -202,7 +257,7 @@ module PossibleMoves
           if pair.last < (map_size - width) && pair.last % width > 0
             temp = objects.find { |o| o.location == (pair.last + (width - 1)) }
             if !temp.nil?
-              if temp.status == :NONE && temp.type == urb.type
+              if temp.type == urb.type && temp.status == :NONE
                 potentials << [pair.first, pair.last, temp.location].sort
               end
             end
@@ -211,7 +266,7 @@ module PossibleMoves
           if pair.last < (map_size - width) && pair.last % width < (width - 1)
             temp = objects.find { |o| o.location == (pair.last + (width + 1)) }
             if !temp.nil?
-              if temp.status == :NONE && temp.type == urb.type
+              if temp.type == urb.type && temp.status == :NONE
                 potentials << [pair.first, pair.last, temp.location].sort
               end
             end
@@ -219,13 +274,203 @@ module PossibleMoves
         end
       end
 
-      if (pair.first - pair.last).abs == (width * 2)
-        mid_cell = objects.find { |m| m.location == pair.first + width }
+      if (pair.first - pair.last).abs == (width + 1)
+
+        mid_cell = objects.find { |m| m.location == pair.last - 1 }
+
         if !mid_cell.nil? && mid_cell.status == :NONE
+
           if pair.first >= width
-            temp = objects.find { |o| o.location == pair.first - width}
+            temp = objects.find { |o| o.location == pair.first - width }
             if !temp.nil?
-              if temp.status == :NONE && temp.type == urb.type
+              moveable_object = objects.find { |o| o.location == pair.last }
+              if temp.type == urb.type && moveable_object.status == :NONE
+                potentials << [pair.first, pair.last, temp.location].sort
+              end
+            end
+          end
+
+          if pair.last < (map_size - width)
+            temp = objects.find { |o| o.location == pair.first * 2 }
+            if !temp.nil?
+              moveable_object = objects.find { |o| o.location == pair.last }
+              if temp.type == urb.type && moveable_object.status == :NONE
+                potentials << [pair.first, pair.last, temp.location].sort
+              end
+            end
+          end
+
+          if pair.last % width > 1
+            temp = objects.find { |o| o.location == pair.last - 2 }
+            if !temp.nil?
+              moveable_object = objects.find { |o| o.location == pair.first }
+              if temp.type == urb.type && moveable_object.status == :NONE
+                potentials << [pair.first, pair.last, temp.location].sort
+              end
+            end
+          end
+
+          if pair.last % width > 0
+            temp = objects.find { |o| o.location == pair.last + 1 }
+            if !temp.nil?
+              moveable_object = objects.find { |o| o.location == pair.first }
+              if temp.type == urb.type && moveable_object.status == :NONE
+                potentials << [pair.first, pair.last, temp.location].sort
+              end
+            end
+          end
+        end
+
+        mid_cell = objects.find { |m| m.location == pair.first + 1 }
+
+        if !mid_cell.nil? && mid_cell.status == :NONE
+
+          if pair.first > width
+            temp = objects.find { |o| o.location == pair.last - (width * 2) }
+            if !temp.nil?
+              moveable_object = objects.find { |o| o.location == pair.first }
+              if temp.type == urb.type && moveable_object.status == :NONE
+                potentials << [pair.first, pair.last, temp.location].sort
+              end
+            end
+          end
+
+          if pair.first < (width - 2)
+            temp = objects.find { |o| o.location == pair.first + 2 }
+            if !temp.nil?
+              moveable_object = objects.find { |o| o.location == pair.last }
+              if temp.type == urb.type && moveable_object.status == :NONE
+                potentials << [pair.first, pair.last, temp.location].sort
+              end
+            end
+          end
+
+          if pair.last < (map_size - width)
+            temp = objects.find { |o| o.location == pair.last + width }
+            if !temp.nil?
+              moveable_object = objects.find { |o| o.location == pair.first }
+              if temp.type == urb.type && moveable_object.status == :NONE
+                potentials << [pair.first, pair.last, temp.location].sort
+              end
+            end
+          end
+
+          if pair.first % width > 0
+            temp = objects.find { |o| o.location == pair.first - 1 }
+            if !temp.nil?
+              moveable_object = objects.find { |o| o.location == pair.last }
+              if temp.type == urb.type && moveable_object.status == :NONE
+                potentials << [pair.first, pair.last, temp.location].sort
+              end
+            end
+          end
+        end
+      end
+      
+      if (pair.first - pair.last).abs == (width - 1)
+
+        mid_cell = objects.find { |m| m.location == pair.last + 1 }
+
+        if !mid_cell.nil? && mid_cell.status == :NONE
+
+          if pair.last < map_size - width && pair.last % width < (width - 1)
+            temp = objects.find { |o| o.location == pair.first + (width * 2) }
+            if !temp.nil?
+              moveable_object = objects.find { |o| o.location == pair.last }
+              if temp.type == urb.type && moveable_object.status == :NONE
+                potentials << [pair.first, pair.last, temp.location].sort
+              end
+            end
+          end
+
+          if pair.first > width
+            temp = objects.find { |o| o.location == pair.first - width }
+            if !temp.nil?
+              moveable_object = objects.find { |o| o.location == pair.last }
+              if temp.type == urb.type && moveable_object.status == :NONE
+                potentials << [pair.first, pair.last, temp.location].sort
+              end
+            end
+          end
+
+          if pair.first % width < (width - 1)
+            temp = objects.find { |o| o.location == pair.last + 2 }
+            if !temp.nil?
+              moveable_object = objects.find { |o| o.location == pair.first }
+              if temp.type == urb.type && moveable_object.status == :NONE
+                potentials << [pair.first, pair.last, temp.location].sort
+              end
+            end
+          end
+
+          if pair.last % width > 0
+            temp = objects.find { |o| o.location == pair.last - 1 }
+            if !temp.nil?
+              moveable_object = objects.find { |o| o.location == pair.first }
+              if temp.type == urb.type && moveable_object.status == :NONE
+                potentials << [pair.first, pair.last, temp.location].sort
+              end
+            end
+          end
+
+          mid_cell = objects.find { |m| m.location == pair.first - 1 }
+
+          if !mid_cell.nil? && mid_cell.status == :NONE
+
+            if pair.first % width < (width - 1)
+              temp = objects.find { |o| o.location == pair.first + 1 }
+              if !temp.nil?
+                moveable_object = objects.find { |o| o.location == pair.last }
+                if temp.type == urb.type && moveable_object.status == :NONE
+                  potentials << [pair.first, pair.last, temp.location].sort
+                end
+              end
+            end
+
+            if pair.last < (map_size - width)
+              temp = objects.find { |o| o.location == pair.last + width }
+              if !temp.nil?
+                moveable_object = objects.find { |o| o.location == pair.first }
+                if temp.type == urb.type && moveable_object.status == :NONE
+                  potentials << [pair.first, pair.last, temp.location].sort
+                end
+              end
+            end
+
+            if pair.first % width > 1
+              temp = objects.find { |o| o.location == pair.first - 2 }
+              if !temp.nil?
+                moveable_object = objects.find { |o| o.location == pair.last }
+                if temp.type == urb.type && moveable_object.status == :NONE
+                  potentials << [pair.first, pair.last, temp.location].sort
+                end
+              end
+            end
+
+            if pair.first > width
+              temp = objects.find { |o| o.location == pair.last - (width * 2) }
+              if !temp.nil?
+                moveable_object = objects.find { |o| o.location == pair.first }
+                if temp.type == urb.type && moveable_object.status == :NONE
+                  potentials << [pair.first, pair.last, temp.location].sort
+                end
+              end
+            end
+          end
+        end
+      end
+
+      if (pair.first - pair.last).abs == (width * 2)
+
+        mid_cell = objects.find { |m| m.location == pair.first + width }
+
+        if !mid_cell.nil? && mid_cell.status == :NONE
+
+          if pair.first >= width
+            temp = objects.find { |o| o.location == pair.first - width }
+            if !temp.nil?
+              moveable_object = objects.find { |o| o.location == pair.last }
+              if temp.type == urb.type && moveable_object.status == :NONE
                 potentials << [pair.first, pair.last, temp.location].sort
               end
             end
@@ -234,7 +479,7 @@ module PossibleMoves
           if mid_cell.location % width > 0
             temp = objects.find { |o| o.location == mid_cell.location - 1 }
             if !temp.nil?
-              if temp.status == :NONE && temp.type == urb.type
+              if temp.type == urb.type && temp.status == :NONE
                 potentials << [pair.first, pair.last, temp.location].sort
               end
             end
@@ -243,7 +488,7 @@ module PossibleMoves
           if mid_cell.location % width < (width - 1)
             temp = objects.find { |o| o.location == mid_cell.location + 1 }
             if !temp.nil?
-              if temp.status == :NONE && temp.type == urb.type
+              if temp.type == urb.type && temp.status == :NONE
                 potentials << [pair.first, pair.last, temp.location].sort
               end
             end
@@ -252,7 +497,8 @@ module PossibleMoves
           if pair.last < (map_size - width)
             temp = objects.find { |o| o.location == pair.last + width}
             if !temp.nil?
-              if temp.status == :NONE && temp.type == urb.type
+              moveable_object = objects.find { |o| o.location == pair.first }
+              if temp.type == urb.type && moveable_object.status == :NONE
                 potentials << [pair.first, pair.last, temp.location].sort
               end
             end
@@ -264,7 +510,7 @@ module PossibleMoves
     potentials.reject! { |pot| pot.empty? }
     return potentials.compact.uniq
   end
-  
+
   def self.find_object_pairs(objects, width, map_size, status=:NONE)
     pairs = []
 
@@ -327,7 +573,7 @@ module PossibleMoves
     end
     return pairs.uniq
   end
-  
+
   def self.find_matches_under_obstacles(obstacles, objects, width, map_size)
     extract_obstacles = []
 
@@ -364,7 +610,7 @@ module PossibleMoves
     end
     array_data
   end
-  
+
   def self.all_potential_matches(objects, obstacles, map_width, map)
     obstacle_matches = find_matches_under_obstacles(obstacles, objects, map_width, map.size)
     pairs = find_object_pairs(objects, map_width, map.size)
@@ -376,6 +622,6 @@ module PossibleMoves
       end
     end
 
-    potential_matches
+    potential_matches.uniq
   end
 end
