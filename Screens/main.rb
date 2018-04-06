@@ -2,6 +2,7 @@ require_relative '../Helpers/game_module'
 require_relative '../Helpers/game_helper'
 require_relative '../Helpers/method_loader'
 require_relative '../Helpers/shuffle_helper'
+require_relative '../Helpers/possible_moves'
 require_relative '../Utilities/levelmanager'
 require_relative '../Objects/basetiles'
 require_relative '../Objects/animation'
@@ -366,7 +367,7 @@ class Main
       # if @level_manager.level_completed?
       #   p "success"
       # end
-      potential_matches = MethodLoader.all_potential_matches(@objects, @obstacles, @map_width, @map)
+      potential_matches = PossibleMoves.all_potential_matches(@objects, @obstacles, @map_width, @map)
 
       if @to_test.zero?
         p "real potential matches =>", potential_matches
