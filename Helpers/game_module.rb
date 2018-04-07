@@ -7,19 +7,19 @@ module GameModule
     matched_details = []
 
     objects.each do |object|
-      if object.active
-        element = object.location
+      element = object.location
+      unless object.off_screen
+        temp = combine_matches(objects, element, width, map, obstacles)
 
-        if object.status == :NONE && object.y.positive?
-          temp = combine_matches(objects, element, width, map, obstacles)
-
-          if !temp.nil? && !matched_details.include?(temp)
-            matched_details << temp
-          end
+        if !temp.nil? && !matched_details.include?(temp)
+          matched_details << temp
         end
       end
     end
 
+    p "find auto matches", matched_details
+    p matched_details.size
+    p matched_details.uniq
     matched_details.each_with_index do |match1, i|
       matched_details.each_with_index do |match2, j|
         if i != j
@@ -35,7 +35,8 @@ module GameModule
       end
     end
     obstacle_contained_in_match(obstacles, matched_details)
-    matched_details
+    p "automatic matches"
+    p matched_details
   end
 
   def self.get_shape(matches, width)
@@ -81,21 +82,18 @@ module GameModule
 
   def self.combine_matches(objects, element, width, map, obstacles)
     matches = []
-    add_match = find_matches_by_column(objects, element, width, map, obstacles).sort.reverse
-    matches.concat add_match
 
-    add_match = find_matches_by_row(objects, element, width, map, obstacles).sort.reverse
-    matches.concat add_match
+    match = find_matches_by_column(objects, element, width, map, obstacles).sort.reverse
+    matches << match unless match.empty?
+
+    match = find_matches_by_row(objects, element, width, map, obstacles).sort.reverse
+    matches << match unless match.empty?
 
     return nil if matches.empty?
 
-    matches.flatten!
-    intersecting_elements = if matches.size > 3
-                              matches.select { |el| matches.count(el) > 1 }.uniq
-                            else
-                              nil
-                            end
     matches = matches.uniq.sort.reverse.flatten
+    intersecting_elements = matches.size > 3 ? matches.select { |el| matches.count(el) > 1 }.uniq.join.to_i : nil
+
     details = { matches: matches, shape: get_shape(matches, width),
     intersects: intersecting_elements, special_type: :NONE }
   end
@@ -262,6 +260,7 @@ module GameModule
   end
 
   def self.obstacle_contained_in_match(obstacles, match_details)
+    p "match_details = #{match_details}"
     matches = []
     match_details.each do |match|
       match[:matches].each do |m|
@@ -274,6 +273,7 @@ module GameModule
       next unless [Settings::OBSTACLE_STATE.find_index(:GLASS), Settings::OBSTACLE_STATE.find_index(:WOOD), Settings::OBSTACLE_STATE.find_index(:CEMENT)].any? { |obstacle| obstacle == obs.status }
       if matches.include? obs.location
         obs.counter -= 1
+        p "counter -> #{obs.counter} for location #{obs.location}"
         obs.change(obs.status)
         unless obs.counter.zero?
           # remove match element from array
