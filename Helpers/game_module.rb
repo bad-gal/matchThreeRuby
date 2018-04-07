@@ -111,11 +111,9 @@ module GameModule
 
     ((rows - 1) - row).times do |i|
       if map[element + (width * (i + 1))] == 1
-        loc = objects.index(
-          objects.find { |j| j.location == (element + (width * (i + 1))) }
-        )
+        loc = objects.index(objects.find { |j| j.location == (element + (width * (i + 1))) && !j.off_screen })
 
-        if !loc.nil?
+        if !loc.nil? # && !loc.off_screen
           if objects[loc].type == urb_type && objects[loc].visible == :visible && objects[loc].active == true && !objects[loc].off_screen
             unless matches.include?(element + (width * (i + 1)))
               matches << element + (width * (i + 1))
@@ -130,11 +128,9 @@ module GameModule
 
     row.times do |i|
       if map[element - (width * (i + 1))] == 1
-        loc = objects.index(
-          objects.find { |j| j.location == (element - (width * (i + 1))) }
-        )
+        loc = objects.index(objects.find { |j| j.location == (element - (width * (i + 1))) && !j.off_screen })
 
-        if !loc.nil?
+        if !loc.nil? # && !loc.off_screen
           if objects[loc].type == urb_type && objects[loc].visible == :visible && objects[loc].active == true && !objects[loc].off_screen
             unless matches.include?(element - (width * (i + 1)))
               matches << element - (width * (i + 1))
@@ -158,7 +154,7 @@ module GameModule
   def self.find_matches_by_row(objects, element, width, map, obstacles)
     matches = []
 
-    e = objects.index(objects.find { |i| i.location == element })
+    e = objects.index(objects.find { |i| i.location == element && !i.off_screen })
     urb_type = objects[e].type
     column = element % width
 
@@ -166,11 +162,9 @@ module GameModule
 
     ((width - 1) - column).times do |i|
       if map[element + (i + 1)] == 1
-        loc = objects.index(
-          objects.find { |j| j.location == (element + (i + 1)) }
-        )
+        loc = objects.index(objects.find { |j| j.location == (element + (i + 1)) && !j.off_screen })
 
-        if !loc.nil?
+        if !loc.nil? # && !loc.off_screen
           if objects[loc].type == urb_type && objects[loc].visible == :visible && objects[loc].active == true && !objects[loc].off_screen
             unless matches.include?(element + (i + 1))
               matches << element + (i + 1)
@@ -185,11 +179,9 @@ module GameModule
 
     column.times do |i|
       if map[element - (i + 1)] == 1
-        loc = objects.index(
-          objects.find { |j| j.location == (element - (i + 1)) }
-        )
+        loc = objects.index(objects.find { |j| j.location == (element - (i + 1)) && !j.off_screen })
 
-        if !loc.nil?
+        if !loc.nil? # && !loc.off_screen
           if objects[loc].type == urb_type && objects[loc].visible == :visible && objects[loc].active == true && !objects[loc].off_screen
             unless matches.include?(element - (i + 1))
               matches << element - (i + 1)

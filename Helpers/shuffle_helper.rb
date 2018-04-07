@@ -1,5 +1,6 @@
 require_relative '../Helpers/game_helper'
 require_relative '../Metrics/path'
+require_relative '../Metrics/graph'
 
 module ShuffleHelper
   def self.objects_to_shuffle(objects)
@@ -25,7 +26,7 @@ module ShuffleHelper
     end
     object_shuffle
   end
-  
+
   def self.assign_shuffle_locations(object_shuffle, cells)
     object_shuffle[1].each_with_index do |cell, i|
       location = GameHelper.find_location_of_cell(cell, cells)
