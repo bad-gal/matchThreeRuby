@@ -20,7 +20,7 @@ module ShuffleHelper
     object_shuffle[0].each_with_index do |obj, i|
       destination = GameHelper::find_x_y_value_of_cell(object_shuffle[1][i], cells)
       if !(obj.x == destination.first && obj.y == destination.last)
-        obj.path.concat Path.new.create_path(obj.x, obj.y, destination.first, destination.last)
+        obj.path.concat Path.new.create_line_path(obj.x, obj.y, destination.first, destination.last)
         obj.animate_path
       end
     end

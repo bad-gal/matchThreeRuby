@@ -98,6 +98,32 @@ class Path
     path
   end
 
+  def create_line_path(start_x, start_y, end_x, end_y)
+    path = []
+    dx = (end_x - start_x).abs
+    dy = (end_y - start_y).abs
+    sx = (start_x < end_x) ? 1 : -1
+    sy = (start_y < end_y) ? 1 : -1
+    err = dx-dy
+
+    while true do
+      path << [start_x, start_y]
+      return path if start_x == end_x && start_y == end_y
+
+      e2 = 2 * err
+
+      if e2 > -dy
+        err = err - dy
+        start_x = start_x + sx
+      end
+
+      if e2 < dx
+        err = err + dx
+        start_y = start_y + sy
+      end
+    end
+  end
+
   def create_path(start_x, start_y, end_x, end_y)
     path = []
     y = start_y
