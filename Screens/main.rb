@@ -338,15 +338,24 @@ class Main
     case @stage
     when STAGE.find_index(:check)
       @shuffling_mode = 1
-      @object_shuffle = ShuffleHelper.check_shuffle(@objects, @cells)
+      @object_shuffle = ShuffleHelper.check_shuffle(@objects, @graph, @map_width, @map_height, @cells)
+      @shuffle_counter = 0
+      @object_shuffle.each do |os|
+        os[1].each do |o|
+          @shuffle_counter += 1
+        end
+      end
       @stage = STAGE.find_index(:rearrange)
+
     when STAGE.find_index(:rearrange)
       complete = 0
-      @object_shuffle[0].each do |shuffle|
-        complete += 1 if shuffle.path.empty?
+      @object_shuffle.each do |section|
+        section[0].each do |shuffle_block|
+          complete += 1 if shuffle_block.path.empty?
+        end
       end
 
-      if complete == @object_shuffle[0].size
+      if complete == @shuffle_counter
         ShuffleHelper.assign_shuffle_locations(@object_shuffle, @cells)
         clear_shuffle_values
         initial_state
@@ -364,13 +373,11 @@ class Main
   def ready_state
     case @stage
     when STAGE.find_index(:check)
-      # if @level_manager.level_completed?
-      #   p "success"
-      # end
       potential_matches = PossibleMoves.all_potential_matches(@objects, @obstacles, @map_width, @map)
 
       if @to_test.zero?
         p "real potential matches =>", potential_matches
+        p "won? -> #{@level_manager.level_completed?}"
         @to_test = 1
       end
 

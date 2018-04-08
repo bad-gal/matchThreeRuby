@@ -64,7 +64,7 @@ class Levelmanager
     when 10
       score_setter(moves: 10, min_score: 5500, glass: 10)
     when 11
-      score_setter(moves: 28, min_score: 7000)
+      score_setter(moves: 28, min_score: 7000, glass: 16)
     when 12
       score_setter(moves: 20, wood: 5)
     when 13
@@ -88,7 +88,7 @@ class Levelmanager
 
   def level_completed?
     case @level
-    when 1, 2, 5, 6, 11, 16
+    when 1, 2, 5, 6, 16
       if @scores[:score] >= @scores[:min_score]
        return :success
       elsif @scores[:moves] == 0
@@ -100,7 +100,7 @@ class Levelmanager
       elsif @scores[:moves] == 0
         return :fail
       end
-    when 4, 10
+    when 4, 10, 11
       if @scores[:glass_counter] == @scores[:glass] && @scores[:score] >= @scores[:min_score]
         return :success
       elsif @scores[:moves] == 0
@@ -181,6 +181,8 @@ class Levelmanager
       locations.push(12, 14, 15, 17, 18, 20, 21, 23)
     when 10
       locations.push(0, 4, 5, 9, 10, 14, 15, 19, 20, 24)
+    when 11
+      locations.push(2, 6, 7, 8, 9, 10, 11, 14, 20, 24, 25, 26, 27, 28, 29, 32)
     when 13
       locations.push(17)
     when 14
