@@ -637,4 +637,13 @@ module PossibleMoves
 
     potential_matches.uniq
   end
+
+  def self.get_bounce_objects(possible_sample, objects)
+    bounce_objects = []
+
+    possible_sample.each do |sample|
+      bounce_objects << objects.find { |o| o.location == sample && !o.off_screen }
+    end
+    bounce_objects
+  end
 end

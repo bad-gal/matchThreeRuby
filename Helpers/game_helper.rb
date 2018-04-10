@@ -3,6 +3,10 @@ module GameHelper
     Gosu::Sample.new('sounds/freed2.mp3')
   end
 
+  def self.load_bounce_sound
+    Gosu::Sample.new('sounds/pac.mp3')
+  end
+
   def self.convert_matches_to_cells(matches, objects, level_manager)
     match_cells = []
 

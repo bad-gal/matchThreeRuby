@@ -112,6 +112,7 @@ class Main
     @large_font = Gosu::Font.new(22)
     @small_font = Gosu::Font.new(12)
     @freed_sound = GameHelper.load_sounds
+    @bounce_sound = GameHelper.load_bounce_sound
   end
 
   def load_selectors
@@ -162,6 +163,8 @@ class Main
 
   def load_variables
     @shuffling_mode = 0
+    @swap_timer = 0
+    @bounce_timer = 0
   end
 
   def reset_graph
@@ -358,6 +361,7 @@ class Main
       if complete == @shuffle_counter
         ShuffleHelper.assign_shuffle_locations(@object_shuffle, @cells)
         clear_shuffle_values
+        @swap_timer = Gosu.milliseconds
         initial_state
       end
     end
@@ -384,7 +388,30 @@ class Main
       if potential_matches.empty?
         initial_shuffle
         @shuffle_timer = Gosu.milliseconds + 1200
+      else
+        if Gosu.milliseconds > (@swap_timer + 10000) && @bounce_timer.zero?
+          p "time's up"
+          possible_sample = potential_matches.sample
+          @bouncing_objects = PossibleMoves.get_bounce_objects(possible_sample, @objects)
+          @bouncing_objects.each do |bounce|
+            bounce.bounce_image(bounce.type)
+          end
+          @bounce_timer = Gosu.milliseconds
+          @swap_timer = Gosu.milliseconds
+          @bounce_sound.play
+        elsif @bounce_timer > 0 && Gosu.milliseconds > (@bounce_timer + 2500)
+          stop_bounce
+        end
       end
+    end
+  end
+
+  def stop_bounce
+    @swap_timer = Gosu.milliseconds
+    @bounce_timer = 0
+
+    @bouncing_objects.each do |bounce|
+      bounce.regular_image(bounce.type)
     end
   end
 
@@ -476,6 +503,7 @@ class Main
       reset_variables
       p 'GO TO READY'
     else
+      @swap_timer = Gosu.milliseconds
       generate_match_data
     end
   end
@@ -759,6 +787,8 @@ class Main
             assign_selector(@selectors[1], @urb_object2)
             initial_swap
           end
+
+          stop_bounce if @bounce_timer > 0
           p "#{object.location}, #{object.cell}, #{object.active}, #{object.type}"
           p "#{object.inspect}"
         else
@@ -768,6 +798,7 @@ class Main
         p "#{object.location}, #{object.cell}, #{object.active}, #{object.type}"
         p "#{object.inspect}"
         @urb_object1 = @objects.find { |ob| ob.location == @urb_one  && !ob.off_screen }
+        @swap_timer = Gosu.milliseconds
         assign_selector(@selectors[0], @urb_object1)
       end
     end

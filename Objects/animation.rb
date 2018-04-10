@@ -11,12 +11,12 @@ class Animation
     @duration = duration
     @x = x
     @y = y
-    add_frame_data(@image_array, @duration, @fps)
+    add_frame_data(@image_array.size, @duration, @fps)
   end
 
-  def add_frame_data(image, duration, fps)
+  def add_frame_data(size, duration, fps)
     @current_frame = 0
-    @frames = image.size
+    @frames = size
     @frame_period = duration / fps
     @frame_ticker = 0
     @animation_finished = false
