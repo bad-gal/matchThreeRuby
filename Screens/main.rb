@@ -3,6 +3,7 @@ require_relative '../Helpers/game_helper'
 require_relative '../Helpers/method_loader'
 require_relative '../Helpers/shuffle_helper'
 require_relative '../Helpers/possible_moves'
+require_relative '../Helpers/urb_animation_helper'
 require_relative '../Utilities/levelmanager'
 require_relative '../Objects/basetiles'
 require_relative '../Objects/animation'
@@ -394,7 +395,7 @@ class Main
           possible_sample = potential_matches.sample
           @bouncing_objects = PossibleMoves.get_bounce_objects(possible_sample, @objects)
           @bouncing_objects.each do |bounce|
-            bounce.bounce_image(bounce.type)
+            UrbAnimationHelper.bounce_image(bounce)
           end
           @bounce_timer = Gosu.milliseconds
           @swap_timer = Gosu.milliseconds
@@ -411,7 +412,7 @@ class Main
     @bounce_timer = 0
 
     @bouncing_objects.each do |bounce|
-      bounce.regular_image(bounce.type)
+      UrbAnimationHelper.regular_image(bounce)
     end
   end
 

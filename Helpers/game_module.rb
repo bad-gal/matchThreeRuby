@@ -1,4 +1,5 @@
 require_relative 'game_helper'
+require_relative 'urb_animation_helper'
 
 module GameModule
   OFF_SCREEN_Y = -300
@@ -111,7 +112,7 @@ module GameModule
       if map[element + (width * (i + 1))] == 1
         loc = objects.index(objects.find { |j| j.location == (element + (width * (i + 1))) && !j.off_screen })
 
-        if !loc.nil? # && !loc.off_screen
+        if !loc.nil?
           if objects[loc].type == urb_type && objects[loc].visible == :visible && objects[loc].active == true && !objects[loc].off_screen
             unless matches.include?(element + (width * (i + 1)))
               matches << element + (width * (i + 1))
@@ -128,7 +129,7 @@ module GameModule
       if map[element - (width * (i + 1))] == 1
         loc = objects.index(objects.find { |j| j.location == (element - (width * (i + 1))) && !j.off_screen })
 
-        if !loc.nil? # && !loc.off_screen
+        if !loc.nil?
           if objects[loc].type == urb_type && objects[loc].visible == :visible && objects[loc].active == true && !objects[loc].off_screen
             unless matches.include?(element - (width * (i + 1)))
               matches << element - (width * (i + 1))
@@ -162,7 +163,7 @@ module GameModule
       if map[element + (i + 1)] == 1
         loc = objects.index(objects.find { |j| j.location == (element + (i + 1)) && !j.off_screen })
 
-        if !loc.nil? # && !loc.off_screen
+        if !loc.nil?
           if objects[loc].type == urb_type && objects[loc].visible == :visible && objects[loc].active == true && !objects[loc].off_screen
             unless matches.include?(element + (i + 1))
               matches << element + (i + 1)
@@ -179,7 +180,7 @@ module GameModule
       if map[element - (i + 1)] == 1
         loc = objects.index(objects.find { |j| j.location == (element - (i + 1)) && !j.off_screen })
 
-        if !loc.nil? # && !loc.off_screen
+        if !loc.nil?
           if objects[loc].type == urb_type && objects[loc].visible == :visible && objects[loc].active == true && !objects[loc].off_screen
             unless matches.include?(element - (i + 1))
               matches << element - (i + 1)
@@ -255,7 +256,7 @@ module GameModule
   def self.change_object_type(urb_objects, rnd_start, rnd_end)
     urb_objects.each do |uo|
       rnd = Gosu.random(rnd_start, rnd_end).to_i
-      uo.change(rnd)
+      UrbAnimationHelper.change(uo, rnd)
     end
   end
 
@@ -274,7 +275,7 @@ module GameModule
       if matches.include? obs.location
         obs.counter -= 1
         p "counter -> #{obs.counter} for location #{obs.location}"
-        obs.change(obs.status)
+        UrbAnimationHelper.change(obs, obs.status)
         unless obs.counter.zero?
           # remove match element from array
           found = match_details.find { |match| match[:matches].include?(obs.location) }
