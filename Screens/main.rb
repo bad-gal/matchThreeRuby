@@ -592,8 +592,8 @@ class Main
       temp = @urb_object1.dup
       update_object_cell(@urb_object1, @urb_object2)
       update_object_cell(@urb_object2, temp)
-      details = GameModule.combine_matches(@objects, @urb_one, @map_width, @map, @obstacles)
-      details2 = GameModule.combine_matches(@objects, @urb_two, @map_width, @map, @obstacles)
+      details = GameModule.combine_matches(@objects, @urb_one, @map_width, @map, @obstacles, [@urb_one, @urb_two])
+      details2 = GameModule.combine_matches(@objects, @urb_two, @map_width, @map, @obstacles, [@urb_one, @urb_two])
       p details, details2
       if details.nil? && details2.nil?
         no_match_made(temp)

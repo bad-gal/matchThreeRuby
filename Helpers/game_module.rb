@@ -10,7 +10,7 @@ module GameModule
     objects.each do |object|
       element = object.location
       unless object.off_screen
-        temp = combine_matches(objects, element, width, map, obstacles)
+        temp = combine_matches(objects, element, width, map, obstacles, nil)
 
         if !temp.nil? && !matched_details.include?(temp)
           matched_details << temp
@@ -40,10 +40,8 @@ module GameModule
     p matched_details
   end
 
-  def self.get_shape(matches, width)
+  def self.get_shape(matches, width, user_select)
     size = matches.size
-    user_select = nil
-    # need to change user_select, I need to record finger swaps for user select
 
     case size
     when 3
@@ -56,7 +54,7 @@ module GameModule
           :LINE_OF_FOUR_VERTICAL
         end
       else
-        result = (user_select.first - user.select.last).abs
+        result = (user_select.first - user_select.last).abs
         if result == 1
           :LINE_OF_FOUR_HORIZONTAL
         else
@@ -81,7 +79,7 @@ module GameModule
     end
   end
 
-  def self.combine_matches(objects, element, width, map, obstacles)
+  def self.combine_matches(objects, element, width, map, obstacles, user_selection)
     matches = []
 
     match = find_matches_by_column(objects, element, width, map, obstacles).sort.reverse
@@ -93,10 +91,30 @@ module GameModule
     return nil if matches.empty?
 
     matches = matches.uniq.sort.reverse.flatten
-    intersecting_elements = matches.size > 3 ? matches.select { |el| matches.count(el) > 1 }.uniq.join.to_i : nil
+    shape = get_shape(matches, width, user_selection)
+    details = { matches: matches, shape: shape, intersects: intersected_element(matches, user_selection), special_type: set_special_type(shape) }
+  end
 
-    details = { matches: matches, shape: get_shape(matches, width),
-    intersects: intersecting_elements, special_type: :NONE }
+  def self.intersected_element(matches, user_selection)
+    if !user_selection.nil? && matches.size == 4
+      intersecting_elements = matches.find { |el| user_selection.include?(el) }
+    else
+      intersecting_elements = matches.size > 4 ? matches.select { |el| matches.count(el) > 1 }.uniq.join.to_i : nil
+    end
+    intersecting_elements
+  end
+
+  def self.set_special_type(shape)
+    case shape
+    when :LINE_OF_FOUR_HORIZONTAL
+      :MINT_SWEET
+    when :LINE_OF_FOUR_VERTICAL
+      :PURPLE_SWEET
+    when :LINE_OF_FIVE_OR_MORE
+      :GOBSTOPPER
+    when :L_OR_T_SHAPE
+      :COOKIE
+    end
   end
 
   def self.find_matches_by_column(objects, element, width, map, obstacles)
@@ -275,7 +293,7 @@ module GameModule
       if matches.include? obs.location
         obs.counter -= 1
         p "counter -> #{obs.counter} for location #{obs.location}"
-        UrbAnimationHelper.change(obs, obs.status)
+        obs.change(obs.status)
         unless obs.counter.zero?
           # remove match element from array
           found = match_details.find { |match| match[:matches].include?(obs.location) }
