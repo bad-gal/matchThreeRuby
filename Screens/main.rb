@@ -512,9 +512,10 @@ class Main
   def generate_match_data
     p '...generate match data'
     @matches = GameHelper.return_matches_from_hash_in_order(@match_details)
-    match_cells = GameHelper.convert_matches_to_cells(@matches, @objects, @level_manager)
-    GameHelper.remove_broken_obstacles(@matches, @obstacles, @graph, @level_manager)
 
+    GameHelper.remove_broken_obstacles(@matches, @obstacles, @graph, @level_manager)
+    p GameModule.remove_sweet_treat_from_matches(@match_details, @objects)
+    match_cells = GameHelper.convert_matches_to_cells(@matches, @objects, @level_manager)
     @cell_vacancies = []
     match_cells.each { |mc| @cell_vacancies << @graph.set_group_vacancies(mc) }
     @collapsed_match = @matches.flatten

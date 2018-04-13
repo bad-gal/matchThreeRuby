@@ -35,6 +35,8 @@ module GameModule
         end
       end
     end
+    # also stops any objects bouncing out if they are under
+    # an obstacle and obstacle not yet broken
     obstacle_contained_in_match(obstacles, matched_details)
     p "automatic matches"
     p matched_details
@@ -226,36 +228,11 @@ module GameModule
     matches.each do |m|
       t = objects.find { |o| o.location == m }
       unless t.nil?
-        temp = animation_data(t.type)
+        temp = UrbAnimationHelper.animation_data(t.type)
         obj_new << UrbAnimation.new(temp[0], temp[1], temp[2], t.fps, t.duration, true, t.x, t.y, t.location, t.type, t.status, t.visible, t.active, t.cell)
       end
     end
     matched_objects_copy.concat obj_new
-  end
-
-  def self.animation_data(type)
-    filename = ''
-    w = 42
-    h = 42
-    case type
-    when :pac
-      filename = 'assets/pac_anim.png'
-    when :lady
-      filename = 'assets/lady_anim.png'
-    when :punk
-      filename = 'assets/punk_anim.png'
-    when :baby
-      filename = 'assets/baby_anim.png'
-    when :nerd
-      filename = 'assets/nerd_anim.png'
-    when :rocker
-      filename = 'assets/rocker_anim.png'
-    when :nerd_girl
-      filename = 'assets/nerd_girl_anim.png'
-    when :pigtails
-      filename = 'assets/pigtails_anim.png'
-    end
-    [filename, w, h]
   end
 
   def self.move_objects_off_screen(matches, objects)
@@ -276,6 +253,27 @@ module GameModule
       rnd = Gosu.random(rnd_start, rnd_end).to_i
       UrbAnimationHelper.change(uo, rnd)
     end
+  end
+
+  # any matches that result in sweet treats should be
+  # removed from bouncing out of tilemap
+  def self.remove_sweet_treat_from_matches(match_details, objects)
+    removable = []
+
+    match_details.each do |details|
+      p details
+      unless details[:shape] == :LINE
+        object = objects.find { |o| o.location == details[:intersects] && !o.off_screen }
+        details[:matches].delete(object.location)
+
+        unless object.nil?
+          object.type = details[:special_type]
+          UrbAnimationHelper.sweet_transformation(object)
+          removable << object
+        end
+      end
+    end
+    removable
   end
 
   def self.obstacle_contained_in_match(obstacles, match_details)

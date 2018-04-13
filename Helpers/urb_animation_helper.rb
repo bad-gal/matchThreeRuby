@@ -75,4 +75,43 @@ module UrbAnimationHelper
     object.change_image(filename)
     object.add_frame_data(5, Gosu.random(9999, 15_001).to_i, Settings::FPS)
   end
+
+  def self.animation_data(type)
+    filename = ''
+    w = 42
+    h = 42
+    case type
+    when :pac
+      filename = 'assets/pac_anim.png'
+    when :lady
+      filename = 'assets/lady_anim.png'
+    when :punk
+      filename = 'assets/punk_anim.png'
+    when :baby
+      filename = 'assets/baby_anim.png'
+    when :nerd
+      filename = 'assets/nerd_anim.png'
+    when :rocker
+      filename = 'assets/rocker_anim.png'
+    when :nerd_girl
+      filename = 'assets/nerd_girl_anim.png'
+    when :pigtails
+      filename = 'assets/pigtails_anim.png'
+    end
+    [filename, w, h]
+  end
+
+  def self.sweet_transformation(object)
+    case object.type
+    when :MINT_SWEET
+      filename = 'assets/mint_sweet.png'
+    when :PURPLE_SWEET
+      filename = 'assets/purple_sweet.png'
+    when :GOBSTOPPER
+      filename = 'assets/gobstopper.png'
+    when :COOKIE
+      filename = 'assets/cookie.png'
+    end
+    object.change_image(filename)
+  end
 end
