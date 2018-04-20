@@ -22,6 +22,10 @@ class Animation
     @animation_finished = false
   end
 
+  def change_loop(value)
+    @looped = value
+  end
+
   def update
     return if Gosu.milliseconds < (@frame_ticker + @frame_period)
     @frame_ticker = Gosu.milliseconds
