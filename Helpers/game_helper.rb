@@ -81,8 +81,9 @@ module GameHelper
   end
 
   def self.valid_swap?(object_a, object_b)
-    !(object_a.status != :NONE || object_b.status != :NONE) &&
-      object_a.type != object_b.type
+    moveable = object_a.status && object_b.status == :NONE
+    different_types = object_a.type == object_b.type && Settings::SWEET_TREATS.include?(object_a.type) ? false : true
+    p moveable && different_types
   end
 
   def self.available_paths(graph, map_width)
@@ -110,36 +111,6 @@ module GameHelper
       matches << match_temp.find { |mt| mt.include?(t) }
     end
     matches
-  end
-
-  def self.urb_file_type(number)
-    case number
-    when 0
-      file = 'assets/rocker_anim.png'
-      type = :rocker
-    when 1
-      file = 'assets/pac_anim.png'
-      type = :pac
-    when 2
-      type = :pigtails
-      file = 'assets/pigtails_anim.png'
-    when 3
-      type = :punk
-      file = 'assets/punk_anim.png'
-    when 4
-      type = :nerd
-      file = 'assets/nerd_anim.png'
-    when 5
-      type = :nerd_girl
-      file = 'assets/nerd_girl_anim.png'
-    when 6
-      type = :baby
-      file = 'assets/baby_anim.png'
-    when 7
-      type = :lady
-      file = 'assets/lady_anim.png'
-    end
-    { file: file, type: type }
   end
 
   def self.decide_direction(primary_direction, vacancies)
