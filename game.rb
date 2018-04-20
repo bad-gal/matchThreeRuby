@@ -42,7 +42,7 @@ class Game < Gosu::Window
 
   def play_level
     selected_level = @screen.button_clicked(mouse_x, mouse_y)
-    return if selected_level.zero?
+    return if selected_level.negative?
     @level = selected_level
     @screen = Main.new(@level)
   end
