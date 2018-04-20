@@ -2,6 +2,7 @@ require 'gosu'
 require_relative 'game_helper'
 require_relative 'settings'
 require_relative 'game_module'
+require_relative 'urb_animation_helper'
 require_relative '../Metrics/path'
 
 module MethodLoader
@@ -18,7 +19,7 @@ module MethodLoader
       rnd = Random.new.random_number(level_manager.urbs_in_level)
       duration = Gosu.random(9999, 15_001).to_i
 
-      urb_hash = GameHelper.urb_file_type(rnd)
+      urb_hash = UrbAnimationHelper.urb_file_type(rnd)
 
       x = valid[:position].first
       y = valid[:position].last
@@ -62,7 +63,7 @@ module MethodLoader
         5, 3, 3]
     when 3
       [1, 4, 3, 6, 7,
-       6, 1, 2, 5, 6,
+       2, 1, 2, 5, 6,
        1, 2, 1, 1, 2,
        1, 4, 3, 4, 3,
        6, 1, 2, 5, 2]
@@ -153,7 +154,7 @@ module MethodLoader
 
     values.each_with_index do |v, i|
       duration = Gosu.random(9999, 15_001).to_i
-      urb_hash = GameHelper.urb_file_type(v)
+      urb_hash = UrbAnimationHelper.urb_file_type(v)
 
       x = valid_tiles[i][:position].first
       y = valid_tiles[i][:position].last
