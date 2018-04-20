@@ -1,7 +1,6 @@
 require_relative '../Helpers/settings'
 
 class Basetiles
-  TILE_GAP = 2
   attr_reader :cells, :tile_square, :image
 
   def initialize(tile_map, tile_map_width, tile_map_height)
@@ -14,13 +13,13 @@ class Basetiles
   end
 
   def x_start_position
-    sum = (@tile_map_width * @tile_square) + (TILE_GAP * (@tile_map_width - 1))
+    sum = (@tile_map_width * @tile_square) + (Settings::TILE_GAP * (@tile_map_width - 1))
     (Settings::SCREEN_WIDTH - sum) / 2
   end
 
   def y_start_position
     sum = (@tile_map_height * @tile_square) +
-          (TILE_GAP * (@tile_map_height - 1))
+          (Settings::TILE_GAP * (@tile_map_height - 1))
     (Settings::SCREEN_HEIGHT - sum) / 2
   end
 
@@ -61,9 +60,9 @@ class Basetiles
       y = y_start
     elsif (i % @tile_map_width).zero?
       x = x_start
-      y += (@tile_square + TILE_GAP)
+      y += (@tile_square + Settings::TILE_GAP)
     else
-      x += (@tile_square + TILE_GAP)
+      x += (@tile_square + Settings::TILE_GAP)
     end
     [x, y]
   end
