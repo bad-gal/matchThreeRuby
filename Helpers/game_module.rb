@@ -1,8 +1,8 @@
 require_relative 'game_helper'
 require_relative 'urb_animation_helper'
+require_relative 'settings'
 
 module GameModule
-  OFF_SCREEN_Y = -300
 
   def self.find_automatic_matches(objects, width, map, obstacles)
     matched_details = []
@@ -100,6 +100,8 @@ module GameModule
   def self.intersected_element(matches, user_selection)
     if !user_selection.nil? && matches.size == 4
       intersecting_elements = matches.find { |el| user_selection.include?(el) }
+    elsif user_selection.nil? && matches.size == 4
+      intersecting_elements = matches[1]
     else
       intersecting_elements = matches.size > 4 ? matches.select { |el| matches.count(el) > 1 }.uniq.join.to_i : nil
     end
@@ -242,7 +244,7 @@ module GameModule
       t = objects.find { |o| o.location == m }
       unless t.nil?
         positions << { element: t.location, x: t.x, y: t.y }
-        t.y = OFF_SCREEN_Y
+        t.y = Settings::OFF_SCREEN_Y
       end
     end
     positions
