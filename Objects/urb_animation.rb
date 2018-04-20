@@ -26,7 +26,7 @@ class UrbAnimation < Animation
   def draw
     unless off_screen
       image = @image_array[@current_frame]
-      image.draw(@x, @y, 0)
+      image.draw(@x, @y, 0) unless image.nil?
     end
 
     return if path.empty?
@@ -48,6 +48,10 @@ class UrbAnimation < Animation
   def update
     super
     off_camera
+
+    if @animation_finished && @y != Settings::OFF_SCREEN_Y
+      @y = Settings::OFF_SCREEN_Y
+    end
   end
 
   def selected?(mouse_x, mouse_y)
