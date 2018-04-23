@@ -1,6 +1,10 @@
 require_relative 'game_module'
 
 module UrbAnimationHelper
+
+  #------------------------------------------------------
+  # change urb based on type
+  #------------------------------------------------------
   def self.change(object, num)
     case num
     when 0
@@ -32,6 +36,9 @@ module UrbAnimationHelper
     object.type = type
   end
   
+  #------------------------------------------------------
+  # change urb animation to bounced image
+  #------------------------------------------------------
   def self.bounce_image(object)
     case object.type
     when :rocker
@@ -55,6 +62,9 @@ module UrbAnimationHelper
     object.add_frame_data(5, Settings::BOUNCE_DURATION, Settings::BOUNCE_FPS)
   end
 
+  #------------------------------------------------------
+  # change urb animation file based on type, change frame rates
+  #------------------------------------------------------
   def self.regular_image(object)
     case object.type
     when :rocker
@@ -78,6 +88,9 @@ module UrbAnimationHelper
     object.add_frame_data(5, Gosu.random(9999, 15_001).to_i, Settings::FPS)
   end
 
+  #------------------------------------------------------
+  # change urb animation file based on type
+  #------------------------------------------------------
   def self.animation_data(type)
     filename = ''
     w = 42
@@ -103,6 +116,9 @@ module UrbAnimationHelper
     [filename, w, h]
   end
 
+  #------------------------------------------------------
+  # change urb animation file based on number
+  #------------------------------------------------------
   def self.urb_file_type(number)
     case number
     when 0
@@ -133,6 +149,9 @@ module UrbAnimationHelper
     { file: file, type: type }
   end
 
+  #------------------------------------------------------
+  # sweet treat animation files
+  #------------------------------------------------------
   def self.sweet_transformation(object)
     case object.type
     when :MINT_SWEET
@@ -147,6 +166,9 @@ module UrbAnimationHelper
     object.change_image(filename)
   end
   
+  #------------------------------------------------------
+  # fade animation for sweet treats
+  #------------------------------------------------------
   def self.sweet_fade(object)
     case object.type
     when :MINT_SWEET
@@ -183,7 +205,10 @@ module UrbAnimationHelper
         sfx = vertical_effects(result.first)
         return [basic_stripe_sweet(result.first, objects, width, obstacles), sfx, [result.first]]
       when :COOKIE
-        basic_cookie(result.first)
+        urb = arr.find{ |a| !Settings::SWEET_TREATS.include?(a.type) }
+        cookie_selection = basic_cookie(result.first, urb, objects, obstacles)
+        sfx = cookie_effects(result.first, cookie_selection.first[:matches], objects)
+        return [cookie_selection, sfx, [result.first]]
       when :GOBSTOPPER
         basic_gobstopper(result.first)
       end
@@ -213,9 +238,9 @@ module UrbAnimationHelper
     end
   end
   
-  #----------------------------------------------------------
-  # identify the objects that need to bounce out [be removed]
-  #----------------------------------------------------------
+  #--------------------------------------------------------------------
+  # identify the objects that need to bounce out from stripe sweet swap
+  #--------------------------------------------------------------------
   def self.basic_stripe_sweet(object, objects, width, obstacles)
     if object.type == :MINT_SWEET # horizontal
       loc = object.location / width
@@ -229,8 +254,18 @@ module UrbAnimationHelper
     matched_details
   end
 
+  #--------------------------------------------------------------
+  # identify the objects that need to bounce out from cookie swap
+  #--------------------------------------------------------------
+  def self.basic_cookie(object, urb, objects, obstacles)
+    matches = objects.find_all{ |obj| obj.type == urb.type }.map{ |o| o.location }
+    matched_details = [{ matches: matches, shape: :LINE, intersects: nil, special_type: nil }]
+    GameModule.obstacle_contained_in_match(obstacles, matched_details)
+    matched_details
+  end
+
   #----------------------------------------------------------
-  # estimate the purple sweet special effects
+  # calculate the purple sweet special effects
   #----------------------------------------------------------
   def self.vertical_effects(object)
     x = object.x
@@ -243,7 +278,7 @@ module UrbAnimationHelper
   end
 
   #----------------------------------------------------------
-  # estimate the mint sweet special effects
+  # calculate the mint sweet special effects
   #----------------------------------------------------------
   def self.horizontal_effects(object)
     x = object.x + 21
@@ -255,6 +290,25 @@ module UrbAnimationHelper
     [SpecialFX.new('assets/lightning2r.png', x, y, fps, duration, 2, object.type)]
   end
 
+  #----------------------------------------------------------
+  # calculate the cookie special effects
+  #----------------------------------------------------------
+  def self.cookie_effects(object, match_locations, objects)
+    positions = []
+    match_locations.each do |ml|
+      positions << objects.find{ |o| o.location == ml }
+    end
+    positions = positions.map{ |po| [po.x, po.y] }
+    p positions
+    x = object.x + 21
+    y = object.y + 21
+    fps = Settings::FPS
+    duration = 5000
+    looped = false
+    sweet_fade(object)
+    [SpecialFX.new('assets/lightning2r.png', x, y, fps, duration, match_locations.size, object.type, positions)]
+  end
+
   def self.double_stripe_sweet(object1, object2)
   end
 
@@ -262,9 +316,6 @@ module UrbAnimationHelper
   end
 
   def self.double_gobstopper(object1, object2)
-  end
-
-  def self.basic_cookie(object)
   end
 
   def self.basic_gobstopper(object)

@@ -10,6 +10,7 @@ require_relative '../Objects/animation'
 require_relative '../Objects/urb_animation'
 require_relative '../Objects/obstacle'
 require_relative '../Objects/image'
+require_relative '../Objects/special_fx'
 require_relative '../Metrics/path'
 require_relative '../Metrics/graph'
 require 'byebug'
@@ -34,6 +35,7 @@ class Main
     load_variables
     load_instructions
     @to_test = 0
+    @sfx = []
     p "wooden obstacles"
     @objects.each do |ob|
       if ob.status == :WOOD
@@ -56,6 +58,8 @@ class Main
       reset_state
     when MATCH_STATE.find_index(:shuffle)
       shuffle_state
+    when MATCH_STATE.find_index(:special)
+      special_state
     end
 
     @effects.each(&:update) unless @effects.empty?
@@ -66,6 +70,10 @@ class Main
 
     @pause_value = 0 if @pause_value == 2
     @help_value = 0 if @help_value == 2
+
+    unless @sfx.empty?
+      @sfx.each(&:update)
+    end
   end
 
   def draw
@@ -89,6 +97,8 @@ class Main
     @selectors[1].draw unless @urb_two.negative?
     @obstacles.each(&:draw) unless @obstacles.empty?
     draw_buttons
+
+    @sfx.each(&:draw) unless @sfx.empty?
   end
 
   def urb_clicked(pos_x, pos_y)
@@ -154,9 +164,7 @@ class Main
 
     @cells.each do |tile|
       if tile[:valid]
-        @tile_image << { img: @base_tiles.image,
-                         x: tile[:position].first,
-                         y: tile[:position].last }
+        @tile_image << { img: @base_tiles.image, x: tile[:position].first, y: tile[:position].last }
       end
       @tile_locations << tile[:position]
     end
@@ -323,6 +331,43 @@ class Main
   def initial_shuffle
     @match_state = MATCH_STATE.find_index(:shuffle)
     @stage = STAGE.find_index(:check)
+  end
+
+  def initial_special
+    @match_state = MATCH_STATE.find_index(:special)
+    @stage = STAGE.find_index(:check)
+  end
+
+  def special_state
+    case @stage
+    when STAGE.find_index(:check)
+      generate_match_data
+    when STAGE.find_index(:match)
+      remove_matches
+      sp_cells = []
+      @special_objects.each do |sp|
+        sp_cells << sp.cell
+      end
+
+      @graph.set_group_vacancies(sp_cells)
+      @cell_vacancies = @graph.get_vacancies
+
+      @special_objects.each do |sp|
+        @matches.first << sp.location
+      end
+      @matches.sort
+      @cell_vacancies.sort
+    when STAGE.find_index(:rearrange)
+      #change special object to regular urb
+      GameModule.change_object_type(@special_objects, 0, @urbs_in_level)
+      @special_objects.each do |sp|
+        sp.change_loop(true)
+        sp.add_frame_data(5, Gosu.random(9999, 15_001).to_i, Settings::FPS)
+      end
+      manage_remaining_objects
+    when STAGE.find_index(:replace)
+      add_new_objects
+    end
   end
 
   def automatic_state
@@ -514,7 +559,7 @@ class Main
     @matches = GameHelper.return_matches_from_hash_in_order(@match_details)
 
     GameHelper.remove_broken_obstacles(@matches, @obstacles, @graph, @level_manager)
-    p GameModule.remove_sweet_treat_from_matches(@match_details, @objects)
+    GameModule.remove_sweet_treat_from_matches(@match_details, @objects)
     match_cells = GameHelper.convert_matches_to_cells(@matches, @objects, @level_manager)
     @cell_vacancies = []
     match_cells.each { |mc| @cell_vacancies << @graph.set_group_vacancies(mc) }
@@ -595,10 +640,22 @@ class Main
       update_object_cell(@urb_object2, temp)
       details = GameModule.combine_matches(@objects, @urb_one, @map_width, @map, @obstacles, [@urb_one, @urb_two])
       details2 = GameModule.combine_matches(@objects, @urb_two, @map_width, @map, @obstacles, [@urb_one, @urb_two])
-      p details, details2
       if details.nil? && details2.nil?
-        no_match_made(temp)
-        reset_state
+        sweet_treat = [@urb_object1.type, @urb_object2.type].any? { |o| Settings::SWEET_TREATS.include?(o) }
+        if sweet_treat
+          dets = UrbAnimationHelper.special_treat(@urb_object1, @urb_object2, @objects, @map_width, @map_height, @obstacles)
+          reset_urb_selectors
+          @swap_one = nil
+          @swap_two = nil
+          @match_details = dets[0]
+          p @sfx = dets[1]
+          @special_objects = dets[2]
+          @counter = 0
+          initial_special
+        else
+          no_match_made(temp)
+          reset_state
+        end
       else
         match_found(details, details2)
         @level_manager.deduct_move
@@ -671,10 +728,10 @@ class Main
 
   def add_new_objects
     if @counter.zero?
-      vacancies = @graph.get_vacancies
-      @viable = GameHelper.viable_objects(vacancies, @graph, @map_width)
+      p vacancies = @graph.get_vacancies
+      p @viable = GameHelper.viable_objects(vacancies, @graph, @map_width)
       return no_viable_objects if @viable.empty?
-      @returning_objects = @objects.find_all(&:off_screen).take(@viable.size)
+      p @returning_objects = @objects.find_all(&:off_screen).take(@viable.size)
       blocking_urbs = MethodLoader.show_blocking_objects(@viable, @graph, @obstacles)
       @counter = 1
       @index = -1
@@ -804,8 +861,5 @@ class Main
         assign_selector(@selectors[0], @urb_object1)
       end
     end
-
-    out = @objects.find_all { |o| o.off_screen }
-    p "out -> #{out}"
   end
 end
