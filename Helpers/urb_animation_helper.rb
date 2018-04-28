@@ -35,7 +35,7 @@ module UrbAnimationHelper
     object.change_image(filename)
     object.type = type
   end
-  
+
   #------------------------------------------------------
   # change urb animation to bounced image
   #------------------------------------------------------
@@ -165,7 +165,7 @@ module UrbAnimationHelper
     end
     object.change_image(filename)
   end
-  
+
   #------------------------------------------------------
   # fade animation for sweet treats
   #------------------------------------------------------
@@ -183,7 +183,7 @@ module UrbAnimationHelper
     object.add_frame_data(5, Settings::BOUNCE_DURATION, Settings::BOUNCE_FPS)
     object.change_image_and_loop(filename, false)
   end
-  
+
   #------------------------------------------------------
   # assign the right method depending on the sweet treats
   #------------------------------------------------------
@@ -206,11 +206,13 @@ module UrbAnimationHelper
         return [basic_stripe_sweet(result.first, objects, width, obstacles), sfx, [result.first]]
       when :COOKIE
         urb = arr.find{ |a| !Settings::SWEET_TREATS.include?(a.type) }
-        cookie_selection = basic_cookie(result.first, urb, objects, obstacles)
+        cookie_selection = basic_cookie(urb, objects, obstacles)
         sfx = cookie_effects(result.first, cookie_selection.first[:matches], objects)
         return [cookie_selection, sfx, [result.first]]
       when :GOBSTOPPER
-        basic_gobstopper(result.first)
+        bomb_positions = basic_gobstopper(object1, object2, width, objects, obstacles)
+        sfx = bomb_effects(object1)
+        return [bomb_positions, sfx, [result.first]]
       end
     else # double treats
       if result.first.type == result.last.type
@@ -237,7 +239,7 @@ module UrbAnimationHelper
       end
     end
   end
-  
+
   #--------------------------------------------------------------------
   # identify the objects that need to bounce out from stripe sweet swap
   #--------------------------------------------------------------------
@@ -257,11 +259,102 @@ module UrbAnimationHelper
   #--------------------------------------------------------------
   # identify the objects that need to bounce out from cookie swap
   #--------------------------------------------------------------
-  def self.basic_cookie(object, urb, objects, obstacles)
+  def self.basic_cookie(urb, objects, obstacles)
     matches = objects.find_all{ |obj| obj.type == urb.type }.map{ |o| o.location }
     matched_details = [{ matches: matches, shape: :LINE, intersects: nil, special_type: nil }]
     GameModule.obstacle_contained_in_match(obstacles, matched_details)
     matched_details
+  end
+
+  #------------------------------------------------------------------
+  # identify the objects that need to bounce out from gobstopper swap
+  #------------------------------------------------------------------
+  def self.basic_gobstopper(object1, object2, width, objects, obstacles)
+    direction = (object1.location - object2.location).abs
+    p matches = bomb_matrix(object1, object2, direction, width, objects, obstacles)
+    matched_details = [{ matches: matches, shape: :LINE, intersects: nil, special_type: nil }]
+    GameModule.obstacle_contained_in_match(obstacles, matched_details)
+    matched_details
+  end
+
+  #------------------------------------------------------------------
+  # collect a list of valid locations to bomb 4x3 grid
+  # or 3x4 grid depending on direction
+  #------------------------------------------------------------------
+  def self.bomb_matrix(object1, object2, direction, width, objects, obstacles)
+    arr = []
+    p object1.location, object2.location, direction
+    if object1.location > object2.location
+      l2 = object1.location
+      l1 = object2.location
+    else
+      l1 = object1.location
+      l2 = object2.location
+    end
+    if direction == 1
+      arr << matrix_horizontal_left(l1, width, objects)
+      arr << matrix_horizontal_right(l2, width, objects)
+    elsif direction == width
+      arr << matrix_vertical_left(l1, width, objects)
+      arr << matrix_vertical_right(l2, width, objects)
+    end
+    arr.flatten.uniq.sort
+  end
+
+  #------------------------------------------------------------------
+  # horizontal left list of max 2 x 3 locations that form the bomb matrix
+  #------------------------------------------------------------------
+  def self.matrix_horizontal_left(l1, width, objects)
+    arr = []
+    arr << l1
+    arr << l1 - 1 if l1 % width > 0 && objects.find{ |o| o.location == l1 - 1 && !o.off_screen }
+    arr << l1 + width if objects.find { |o| o.location == l1 + width && !o.off_screen }
+    arr << l1 + (width - 1) if l1 % width > 0 && objects.find{ |o| o.location == l1 + (width - 1) && !o.off_screen }
+    arr << l1 - width if l1 >= width && objects.find{ |o| o.location == l1 - width && !o.off_screen }
+    arr << l1 - (width + 1) if (l1 / width) - (l1 - (width + 1)) / width == 1 && objects.find{ |o| o.location == l1 - (width + 1) && !o.off_screen }
+    arr
+  end
+
+  #------------------------------------------------------------------
+  # horizontal right list of max 2 x 3 locations that form the bomb matrix
+  #------------------------------------------------------------------
+  def self.matrix_horizontal_right(l2, width, objects)
+    arr = []
+    arr << l2
+    arr << l2 + 1 if l2 % width < (width - 1) && objects.find{ |o| o.location == l2 + 1 && !o.off_screen }
+    arr << l2 + width if objects.find { |o| o.location == l2 + width && !o.off_screen }
+    arr << l2 + (width + 1) if l2 % width < (width - 1) && objects.find{ |o| o.location == l2 + (width + 1) && !o.off_screen }
+    arr << l2 - width if l2 >= width && objects.find{ |o| o.location == l2 - width && !o.off_screen }
+    arr << l2 - (width - 1) if (l2 / width) != (l2 - (width - 1)) / width && objects.find{ |o| o.location == l2 - (width - 1) && !o.off_screen }
+    arr
+  end
+
+  #------------------------------------------------------------------
+  # vertical left list of max 2 x 3 locations that form the bomb matrix
+  #------------------------------------------------------------------
+  def self.matrix_vertical_left(l1, width, objects)
+    arr = []
+    arr << l1
+    arr << l1 - 1 if l1 % width > 0 && objects.find{ |o| o.location == l1 - 1 && !o.off_screen }
+    arr << l1 + 1 if l1 % width < (width - 1) && objects.find{ |o| o.location == l1 + 1 && !o.off_screen }
+    arr << l1 - width if l1 >= width && objects.find{ |o| o.location == l1 - width && !o.off_screen }
+    arr << l1 - (width + 1) if (l1 / width) - (l1 - (width + 1)) / width == 1 && objects.find{ |o| o.location == l1 - (width + 1) && !o.off_screen }
+    arr << l1 - (width - 1) if (l1 / width) != (l1 - (width - 1)) / width && objects.find{ |o| o.location == l1 - (width - 1) && !o.off_screen }
+    arr
+  end
+
+  #------------------------------------------------------------------
+  # vertical right list of max 2 x 3 locations that form the bomb matrix
+  #------------------------------------------------------------------
+  def self.matrix_vertical_right(l2, width, objects)
+    arr = []
+    arr << l2
+    arr << l2 - 1 if l2 % width > 0 && objects.find{ |o| o.location == l2 - 1 && !o.off_screen }
+    arr << l2 + 1 if l2 % width < (width - 1) && objects.find{ |o| o.location == l2 + 1 && !o.off_screen }
+    arr << l2 + width if objects.find { |o| o.location == l2 + width && !o.off_screen }
+    arr << l2 + (width + 1) if l2 % width < (width - 1) && objects.find{ |o| o.location == l2 + (width + 1) && !o.off_screen }
+    arr << l2 + (width - 1) if (l2 / width) != (l2 + (width - 1)) / width && objects.find{ |o| o.location == l2 + (width - 1) && !o.off_screen }
+    arr
   end
 
   #----------------------------------------------------------
@@ -273,8 +366,9 @@ module UrbAnimationHelper
     fps = Settings::FPS
     duration = 5000
     looped = false
+    frames = 2
     sweet_fade(object)
-    [SpecialFX.new('assets/lightning2r.png', x, y, fps, duration, 2, object.type)]
+    [SpecialFX.new('assets/lightning2r.png', x, y, fps, duration, frames, 2, object.type)]
   end
 
   #----------------------------------------------------------
@@ -286,8 +380,9 @@ module UrbAnimationHelper
     fps = Settings::FPS
     duration = 5000
     looped = false
+    frames = 2
     sweet_fade(object)
-    [SpecialFX.new('assets/lightning2r.png', x, y, fps, duration, 2, object.type)]
+    [SpecialFX.new('assets/lightning2r.png', x, y, fps, duration, frames, 2, object.type)]
   end
 
   #----------------------------------------------------------
@@ -305,8 +400,16 @@ module UrbAnimationHelper
     fps = Settings::FPS
     duration = 5000
     looped = false
+    frames = 2
     sweet_fade(object)
-    [SpecialFX.new('assets/lightning2r.png', x, y, fps, duration, match_locations.size, object.type, positions)]
+    [SpecialFX.new('assets/lightning2r.png', x, y, fps, duration, frames, match_locations.size, object.type, positions)]
+  end
+
+  #----------------------------------------------------------
+  # calculate the gobstopper special effects
+  #----------------------------------------------------------
+  def self.bomb_effects(object)
+    [SpecialFX.new('assets/explosion.png', object.x, object.y, Settings::BOUNCE_FPS, 2000, 16, 1, object.type)]
   end
 
   def self.double_stripe_sweet(object1, object2)
@@ -316,9 +419,6 @@ module UrbAnimationHelper
   end
 
   def self.double_gobstopper(object1, object2)
-  end
-
-  def self.basic_gobstopper(object)
   end
 
   def self.sweet_cookie(object1, object2)
