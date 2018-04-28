@@ -1,26 +1,29 @@
 class SpecialFX
   WIDTH = 42
   HEIGHT = 289
-  
-  def initialize(filename, x, y, fps, duration, size, type, options=nil)
+
+  def initialize(filename, x, y, fps, duration, frames, size, type, options=nil)
     @start_x = x
     @fps = fps
     @duration = duration
     @type = type
     @current_frame = 0
-    @frames = 2
+    @frames = frames
     @frame_period = duration / fps
     @frame_ticker = 0
     @animation_finished = false
     @looped = false
     @image_array = []
+    @scale_x = 1
     0.upto(size - 1) do
-      @image_array << Gosu::Image.load_tiles(filename, WIDTH, HEIGHT)
+      @image_array << Gosu::Image.load_tiles(filename, WIDTH, HEIGHT) unless type == :GOBSTOPPER
+      @image_array << Gosu::Image.load_tiles(filename, 240, 240) if type == :GOBSTOPPER
     end
     @scale_y = []
     @angles = []
     @centre_x = []
     @centre_y = []
+
     if type == :PURPLE_SWEET
       @angles = [0, 180]
       @centre_x = [0, 1]
@@ -47,20 +50,30 @@ class SpecialFX
         @angles << Gosu.angle(x, y, opt.first, opt.last)
         @centre_x << 0
         @centre_y << 1
-        p distance = Math.sqrt(((x - opt.first) ** 2).abs + ((y - opt.last) ** 2))
+        distance = Math.sqrt(((x - opt.first) ** 2).abs + ((y - opt.last) ** 2))
         distance = 70.0 if distance < 50
         @scale_y <<  distance / 289
         @y << y
         @x << x
       end
     end
+
+    if type == :GOBSTOPPER
+      @x = [x]
+      @y = [y]
+      @angles = [0]
+      @centre_x = [0.5]
+      @centre_y = [0.5]
+      @scale_y = [1.2]
+      @scale_x = 1.3
+    end
   end
-  
+
   def update
     return if Gosu.milliseconds < (@frame_ticker + @frame_period)
     @frame_ticker = Gosu.milliseconds
     @current_frame += 1
-    
+
     case @looped
     when true
       @current_frame = 0 if @current_frame >= @frames
@@ -68,12 +81,12 @@ class SpecialFX
       @animation_finished = true if @current_frame >= @frames
     end
   end
-  
+
   def draw
     return if @animation_finished
     @image_array.each_with_index do |image, i|
       img = image[@current_frame]
-      img.draw_rot(@x[i], @y[i], 0, @angles[i], @centre_x[i], @centre_y[i], 1, @scale_y[i])
+      img.draw_rot(@x[i], @y[i], 0, @angles[i], @centre_x[i], @centre_y[i], @scale_x, @scale_y[i])
     end
   end
 end
