@@ -102,8 +102,11 @@ module GameModule
       intersecting_elements = matches.find { |el| user_selection.include?(el) }
     elsif user_selection.nil? && matches.size == 4
       intersecting_elements = matches[1]
-    else
-      intersecting_elements = matches.size > 4 ? matches.select { |el| matches.count(el) > 1 }.uniq.join.to_i : nil
+    elsif matches.size > 4
+      count = matches.select { |el| matches.count(el) > 1 }.uniq.join.to_i
+      return count unless count.zero?
+      return matches[2]
+      # intersecting_elements = matches.size > 4 ? matches.select { |el| matches.count(el) > 1 }.uniq.join.to_i :
     end
     intersecting_elements
   end
@@ -115,9 +118,9 @@ module GameModule
     when :LINE_OF_FOUR_VERTICAL
       :PURPLE_SWEET
     when :LINE_OF_FIVE_OR_MORE
-      :GOBSTOPPER
-    when :L_OR_T_SHAPE
       :COOKIE
+    when :L_OR_T_SHAPE
+      :GOBSTOPPER
     end
   end
 
