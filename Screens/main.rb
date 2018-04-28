@@ -650,6 +650,9 @@ class Main
           @match_details = dets[0]
           p @sfx = dets[1]
           @special_objects = dets[2]
+          if @special_objects.size == 1 && @special_objects[0].type == :GOBSTOPPER
+            GameModule.change_object_type(@special_objects, 0, @urbs_in_level)
+          end
           @counter = 0
           initial_special
         else
