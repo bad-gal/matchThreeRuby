@@ -81,8 +81,9 @@ module GameHelper
   end
 
   def self.valid_swap?(object_a, object_b)
-    moveable = object_a.status && object_b.status == :NONE
-    different_types = object_a.type == object_b.type && Settings::SWEET_TREATS.include?(object_a.type) ? false : true
+    p moveable = object_a.status && object_b.status == :NONE
+    # p different_types = object_a.type == object_b.type && Settings::SWEET_TREATS.include?(object_a.type) ? false : true
+    different_types = object_a.type != object_b.type || (object_a.type == object_b.type && Settings::SWEET_TREATS.include?(object_a.type))
     p moveable && different_types
   end
 
