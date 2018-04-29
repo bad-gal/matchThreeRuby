@@ -145,6 +145,18 @@ module UrbAnimationHelper
     when 7
       type = :lady
       file = 'assets/lady_anim.png'
+    when 10
+      type = :MINT_SWEET
+      file = 'assets/mint_sweet.png'
+    when 11
+      type = :PURPLE_SWEET
+      file = 'assets/purple_sweet.png'
+    when 12
+      type = :COOKIE
+      file = 'assets/cookie.png'
+    when 13
+      type = :GOBSTOPPER
+      file = 'assets/gobstopper.png'
     end
     { file: file, type: type }
   end
@@ -214,27 +226,36 @@ module UrbAnimationHelper
         sfx = bomb_effects(object1)
         return [bomb_positions, sfx, [result.first]]
       end
-    else # double treats
-      if result.first.type == result.last.type
-        case result.first.type
-        when :MINT_SWEET, :PURPLE_SWEET
-          double_stripe_sweet(result.first, result.last)
-        when :COOKIE
-          double_cookie(result.first, result.last)
-        when :GOBSTOPPER
-          double_gobstopper(result.first, result.last)
+    else
+      if [result.first.type, result.last.type].all? { |o| [:MINT_SWEET, :PURPLE_SWEET].include?(o) }
+        sfx = []
+        mint = nil
+        purple = nil
+        if result.first.type == result.last.type
+          mint = result.first
+          mint.type = :MINT_SWEET unless mint.type == :MINT_SWEET
+          purple = result.last
+          purple.type = :PURPLE_SWEET unless purple.type == :PURPLE_SWEET
+        else
+          mint = [result.first, result.last].find{ |r| r.type == :MINT_SWEET }
+          purple = [result.first, result.last].find{ |r| r.type == :PURPLE_SWEET }
         end
-      elsif [result.first.type, result.last.type].all? { |o| [:MINT_SWEET, :PURPLE_SWEET] }
-        double_stripe_sweet(result.first, result.last)
-      elsif [result.first.type, result.last.type].all? { |o| [:MINT_SWEET, :COOKIE] }
+        sfx << horizontal_effects(mint)
+        sfx << vertical_effects(purple)
+        return [double_stripe_sweet(mint, purple, objects, width, obstacles), sfx, [result.first, result.last]]
+      elsif [result.first.type, result.last.type].all? { |o| [:COOKIE].include?(o) }
+        double_cookie(result.first, result.last)
+      elsif [result.first.type, result.last.type].all? { |o| [:GOBSTOPPER].include?(o) }
+        double_gobstopper(result.first, result.last)
+      elsif [result.first.type, result.last.type].all? { |o| [:MINT_SWEET, :COOKIE].include?(o) }
         sweet_cookie(result.first, result.last)
-      elsif [result.first.type, result.last.type].all? { |o| [:MINT_SWEET, :GOBSTOPPER] }
+      elsif [result.first.type, result.last.type].all? { |o| [:MINT_SWEET, :GOBSTOPPER].include?(o) }
         sweet_gobstopper(result.first, result.last)
-      elsif [result.first.type, result.last.type].all? { |o| [:PURPLE_SWEET, :COOKIE] }
+      elsif [result.first.type, result.last.type].all? { |o| [:PURPLE_SWEET, :COOKIE].include?(o) }
         sweet_cookie(result.first, result.last)
-      elsif [result.first.type, result.last.type].all? { |o| [:PURPLE_SWEET, :GOBSTOPPER] }
+      elsif [result.first.type, result.last.type].all? { |o| [:PURPLE_SWEET, :GOBSTOPPER].include?(o) }
         sweet_gobstopper(result.first, result.last)
-      elsif [result.first.type, result.last.type].all? { |o| [:COOKIE, :GOBSTOPPER] }
+      elsif [result.first.type, result.last.type].all? { |o| [:COOKIE, :GOBSTOPPER].include?(o) }
         cookie_gobstopper(result.first, result.last)
       end
     end
@@ -278,12 +299,30 @@ module UrbAnimationHelper
   end
 
   #------------------------------------------------------------------
+  #
+  #------------------------------------------------------------------
+  def self.double_stripe_sweet(object1, object2, objects, width, obstacles)
+    matches = []
+
+    loc = object1.location / width
+    matches << objects.find_all { |o| o.location / width == loc && !Settings::SWEET_TREATS.include?(o.type) && o.location != object1.location }.map { |o| o.location }
+
+    loc = object2.location % width
+    matches << objects.find_all { |o| o.location % width == loc && !Settings::SWEET_TREATS.include?(o.type) && o.location != object2.location }.map { |o| o.location }
+
+    matches.flatten!.uniq
+    matched_details = [{ matches: matches, shape: :LINE, intersects: nil, special_type: nil }]
+    GameModule.obstacle_contained_in_match(obstacles, matched_details)
+    matched_details
+  end
+
+  #------------------------------------------------------------------
   # collect a list of valid locations to bomb 4x3 grid
   # or 3x4 grid depending on direction
   #------------------------------------------------------------------
   def self.bomb_matrix(object1, object2, direction, width, objects, obstacles)
     arr = []
-    p object1.location, object2.location, direction
+
     if object1.location > object2.location
       l2 = object1.location
       l1 = object2.location
@@ -291,6 +330,7 @@ module UrbAnimationHelper
       l1 = object1.location
       l2 = object2.location
     end
+
     if direction == 1
       arr << matrix_horizontal_left(l1, width, objects)
       arr << matrix_horizontal_right(l2, width, objects)
@@ -412,8 +452,7 @@ module UrbAnimationHelper
     [SpecialFX.new('assets/explosion.png', object.x, object.y, Settings::BOUNCE_FPS, 2000, 16, 1, object.type)]
   end
 
-  def self.double_stripe_sweet(object1, object2)
-  end
+
 
   def self.double_cookie(object1, object2)
   end
