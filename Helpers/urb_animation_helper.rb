@@ -210,23 +210,28 @@ module UrbAnimationHelper
 
     if result.size == 1
       case result.first.type
+
       when :MINT_SWEET
         sfx = horizontal_effects(result.first)
         return [basic_stripe_sweet(result.first, objects, width, obstacles), sfx, [result.first]]
+
       when :PURPLE_SWEET
         sfx = vertical_effects(result.first)
         return [basic_stripe_sweet(result.first, objects, width, obstacles), sfx, [result.first]]
+
       when :COOKIE
         urb = arr.find{ |a| !Settings::SWEET_TREATS.include?(a.type) }
         cookie_selection = basic_cookie(urb, objects, obstacles)
         sfx = cookie_effects(result.first, cookie_selection.first[:matches], objects)
         return [cookie_selection, sfx, [result.first]]
+
       when :GOBSTOPPER
         bomb_positions = basic_gobstopper(object1, object2, width, objects, obstacles)
         sfx = bomb_effects(object1)
         return [bomb_positions, sfx, [result.first]]
       end
     else
+
       if [result.first.type, result.last.type].all? { |o| [:MINT_SWEET, :PURPLE_SWEET].include?(o) }
         sfx = []
         mint = nil
@@ -243,12 +248,22 @@ module UrbAnimationHelper
         sfx << horizontal_effects(mint)
         sfx << vertical_effects(purple)
         return [double_stripe_sweet(mint, purple, objects, width, obstacles), sfx, [result.first, result.last]]
+
       elsif [result.first.type, result.last.type].all? { |o| [:COOKIE].include?(o) }
-        double_cookie(result.first, result.last)
+        cookie_selection = double_cookie(result.first, result.last, objects, obstacles)
+        match = cookie_selection.first[:matches]
+        cookie_tin = match.each_slice((match.size/2.0).round).to_a
+        sfx = []
+        sfx << cookie_effects(result.first, cookie_tin.first, objects)
+        sfx << cookie_effects(result.last, cookie_tin.last, objects)
+        return [cookie_selection, sfx, [result.first, result.last]]
+
       elsif [result.first.type, result.last.type].all? { |o| [:GOBSTOPPER].include?(o) }
         double_gobstopper(result.first, result.last)
+
       elsif [result.first.type, result.last.type].all? { |o| [:MINT_SWEET, :COOKIE].include?(o) }
         sweet_cookie(result.first, result.last)
+
       elsif [result.first.type, result.last.type].all? { |o| [:MINT_SWEET, :GOBSTOPPER].include?(o) } ||
             [result.first.type, result.last.type].all? { |o| [:PURPLE_SWEET, :GOBSTOPPER].include?(o) }
         sfx = []
@@ -262,8 +277,10 @@ module UrbAnimationHelper
           sfx << horizontal_effects(result.first)
         end
         return [sweet_gobstopper(result.first, result.last, width, objects, obstacles), sfx, [result.first, result.last]]
+
       elsif [result.first.type, result.last.type].all? { |o| [:PURPLE_SWEET, :COOKIE].include?(o) [result.first, result.last] }
         sweet_cookie(result.first, result.last)
+
       elsif [result.first.type, result.last.type].all? { |o| [:COOKIE, :GOBSTOPPER].include?(o) }
         cookie_gobstopper(result.first, result.last)
       end
@@ -308,7 +325,7 @@ module UrbAnimationHelper
   end
 
   #------------------------------------------------------------------
-  #
+  # identify the objects that need to bounce out from double stripe sweet
   #------------------------------------------------------------------
   def self.double_stripe_sweet(object1, object2, objects, width, obstacles)
     matches = []
@@ -323,6 +340,42 @@ module UrbAnimationHelper
     matched_details = [{ matches: matches, shape: :LINE, intersects: nil, special_type: nil }]
     GameModule.obstacle_contained_in_match(obstacles, matched_details)
     matched_details
+  end
+
+  #------------------------------------------------------------------
+  # identify the objects that need to bounce out from double cookie
+  #------------------------------------------------------------------
+  def self.double_cookie(object1, object2, objects, obstacles)
+    p matches = objects.find_all{ |obj| ![object1.location, object2.location].include?(obj.location) }.map{ |o| o.location }
+    matched_details = [{ matches: matches, shape: :LINE, intersects: nil, special_type: nil }]
+    GameModule.obstacle_contained_in_match(obstacles, matched_details)
+    matched_details
+  end
+
+  #------------------------------------------------------------------
+  # identify the objects that need to bounce out from sweet gobstopper
+  #------------------------------------------------------------------
+  def self.sweet_gobstopper(object1, object2, width, objects, obstacles)
+    matches = []
+    # need to do something with gobstopper as it is not included in match but needs to be removed from tilemap
+    [object1, object2].each do |object|
+      loc = object.location % width
+      matches << objects.find_all { |o| o.location % width == loc }.map { |o| o.location }
+      loc = object.location / width
+      matches << objects.find_all { |o| o.location / width == loc }.map { |o| o.location }
+    end
+    matches.flatten!.uniq!.sort
+
+    [object1, object2].each do |object|
+      found = matches.find{ |m| m == object.location }
+      matches.delete(found)
+    end
+    matched_details = [{ matches: matches.sort, shape: :LINE, intersects: nil, special_type: nil }]
+    GameModule.obstacle_contained_in_match(obstacles, matched_details)
+    matched_details
+  end
+
+  def self.cookie_gobstopper(object1, object2)
   end
 
   #------------------------------------------------------------------
@@ -461,37 +514,9 @@ module UrbAnimationHelper
     [SpecialFX.new('assets/explosion.png', object.x, object.y, Settings::BOUNCE_FPS, 2000, 16, 1, object.type)]
   end
 
-
-
-  def self.double_cookie(object1, object2)
-  end
-
   def self.double_gobstopper(object1, object2)
   end
 
   def self.sweet_cookie(object1, object2)
-  end
-
-  def self.sweet_gobstopper(object1, object2, width, objects, obstacles)
-    matches = []
-    # need to do something with gobstopper as it is not included in match but needs to be removed from tilemap
-    [object1, object2].each do |object|
-      loc = object.location % width
-      matches << objects.find_all { |o| o.location % width == loc }.map { |o| o.location }
-      loc = object.location / width
-      matches << objects.find_all { |o| o.location / width == loc }.map { |o| o.location }
-    end
-    matches.flatten!.uniq!.sort
-
-    [object1, object2].each do |object|
-      found = matches.find{ |m| m == object.location }
-      matches.delete(found)
-    end
-    matched_details = [{ matches: matches.sort, shape: :LINE, intersects: nil, special_type: nil }]
-    GameModule.obstacle_contained_in_match(obstacles, matched_details)
-    matched_details
-  end
-
-  def self.cookie_gobstopper(object1, object2)
   end
 end
