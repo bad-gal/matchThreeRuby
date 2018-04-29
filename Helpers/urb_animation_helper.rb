@@ -249,12 +249,21 @@ module UrbAnimationHelper
         double_gobstopper(result.first, result.last)
       elsif [result.first.type, result.last.type].all? { |o| [:MINT_SWEET, :COOKIE].include?(o) }
         sweet_cookie(result.first, result.last)
-      elsif [result.first.type, result.last.type].all? { |o| [:MINT_SWEET, :GOBSTOPPER].include?(o) }
-        sweet_gobstopper(result.first, result.last)
-      elsif [result.first.type, result.last.type].all? { |o| [:PURPLE_SWEET, :COOKIE].include?(o) }
+      elsif [result.first.type, result.last.type].all? { |o| [:MINT_SWEET, :GOBSTOPPER].include?(o) } ||
+            [result.first.type, result.last.type].all? { |o| [:PURPLE_SWEET, :GOBSTOPPER].include?(o) }
+        sfx = []
+        direction = (result.first.location - result.last.location).abs
+        if direction == 1
+          result.first.type = :PURPLE_SWEET
+          result.last.type = :PURPLE_SWEET
+          sfx << vertical_effects(result.first)
+          sfx << vertical_effects(result.last)
+          result.first.type = :MINT_SWEET
+          sfx << horizontal_effects(result.first)
+        end
+        return [sweet_gobstopper(result.first, result.last, width, objects, obstacles), sfx, [result.first, result.last]]
+      elsif [result.first.type, result.last.type].all? { |o| [:PURPLE_SWEET, :COOKIE].include?(o) [result.first, result.last] }
         sweet_cookie(result.first, result.last)
-      elsif [result.first.type, result.last.type].all? { |o| [:PURPLE_SWEET, :GOBSTOPPER].include?(o) }
-        sweet_gobstopper(result.first, result.last)
       elsif [result.first.type, result.last.type].all? { |o| [:COOKIE, :GOBSTOPPER].include?(o) }
         cookie_gobstopper(result.first, result.last)
       end
@@ -463,7 +472,24 @@ module UrbAnimationHelper
   def self.sweet_cookie(object1, object2)
   end
 
-  def self.sweet_gobstopper(object1, object2)
+  def self.sweet_gobstopper(object1, object2, width, objects, obstacles)
+    matches = []
+    # need to do something with gobstopper as it is not included in match but needs to be removed from tilemap
+    [object1, object2].each do |object|
+      loc = object.location % width
+      matches << objects.find_all { |o| o.location % width == loc }.map { |o| o.location }
+      loc = object.location / width
+      matches << objects.find_all { |o| o.location / width == loc }.map { |o| o.location }
+    end
+    matches.flatten!.uniq!.sort
+
+    [object1, object2].each do |object|
+      found = matches.find{ |m| m == object.location }
+      matches.delete(found)
+    end
+    matched_details = [{ matches: matches.sort, shape: :LINE, intersects: nil, special_type: nil }]
+    GameModule.obstacle_contained_in_match(obstacles, matched_details)
+    matched_details
   end
 
   def self.cookie_gobstopper(object1, object2)
