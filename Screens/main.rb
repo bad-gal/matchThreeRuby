@@ -651,9 +651,8 @@ class Main
           p @sfx = dets[1]
           @sfx.flatten!
           @special_objects = dets[2]
-          p @special_objects.size
-          if @special_objects.size == 1 && @special_objects[0].type == :GOBSTOPPER
-            GameModule.change_object_type(@special_objects, 0, @urbs_in_level)
+          @special_objects.each do |sp|
+            GameModule.change_object_type([sp], 0, @urbs_in_level) if sp.type == :GOBSTOPPER
           end
           @counter = 0
           initial_special

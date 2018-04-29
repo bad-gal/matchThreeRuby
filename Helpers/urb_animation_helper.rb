@@ -259,7 +259,11 @@ module UrbAnimationHelper
         return [cookie_selection, sfx, [result.first, result.last]]
 
       elsif [result.first.type, result.last.type].all? { |o| [:GOBSTOPPER].include?(o) }
-        double_gobstopper(result.first, result.last)
+        sfx = []
+        bomb_positions = basic_gobstopper(object1, object2, width, objects, obstacles)
+        sfx << bomb_effects(result.first)
+        sfx << bomb_effects(result.last)
+        return [bomb_positions, sfx, [result.first, result.last]]
 
       elsif [result.first.type, result.last.type].all? { |o| [:MINT_SWEET, :COOKIE].include?(o) }
         sweet_cookie(result.first, result.last)
