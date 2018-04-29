@@ -557,7 +557,6 @@ class Main
   def generate_match_data
     p '...generate match data'
     @matches = GameHelper.return_matches_from_hash_in_order(@match_details)
-
     GameHelper.remove_broken_obstacles(@matches, @obstacles, @graph, @level_manager)
     GameModule.remove_sweet_treat_from_matches(@match_details, @objects)
     match_cells = GameHelper.convert_matches_to_cells(@matches, @objects, @level_manager)
@@ -567,6 +566,7 @@ class Main
 
     @matched_copy = GameModule.set_matched_objects(@collapsed_match, @objects)
     @stage = STAGE.find_index(:match)
+
   end
 
   def create_bounce
@@ -649,7 +649,9 @@ class Main
           @swap_two = nil
           @match_details = dets[0]
           p @sfx = dets[1]
+          @sfx.flatten!
           @special_objects = dets[2]
+          p @special_objects.size
           if @special_objects.size == 1 && @special_objects[0].type == :GOBSTOPPER
             GameModule.change_object_type(@special_objects, 0, @urbs_in_level)
           end
@@ -843,7 +845,7 @@ class Main
            (@urb_two == @urb_one - @map_width && @urb_two >= 0)
           @urb_object2 = @objects.find { |jt| jt.location == @urb_two && !jt.off_screen }
 
-          if @urb_object1.type == @urb_object2.type
+          if @urb_object1.type == @urb_object2.type && !Settings::SWEET_TREATS.include?(@urb_object1.type)
             reset_urb_selectors
           else
             assign_selector(@selectors[1], @urb_object2)
