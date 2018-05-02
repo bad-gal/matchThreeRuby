@@ -648,7 +648,7 @@ class Main
           @swap_one = nil
           @swap_two = nil
           @match_details = dets[0]
-          p @sfx = dets[1]
+          @sfx = dets[1]
           @sfx.flatten!
           @special_objects = dets[2]
           @special_objects.each do |sp|

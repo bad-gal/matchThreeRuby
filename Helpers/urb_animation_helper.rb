@@ -265,8 +265,21 @@ module UrbAnimationHelper
         sfx << bomb_effects(result.last)
         return [bomb_positions, sfx, [result.first, result.last]]
 
-      elsif [result.first.type, result.last.type].all? { |o| [:MINT_SWEET, :COOKIE].include?(o) }
-        sweet_cookie(result.first, result.last)
+      elsif [result.first.type, result.last.type].all? { |o| [:MINT_SWEET, :COOKIE].include?(o) || [:PURPLE_SWEET, :COOKIE].include?(o) }
+
+        sfx = []
+        details = []
+
+        cookie = result.find{ |o| o.type == :COOKIE }
+        cookie_selection = sweet_cookie(result.first, result.last, objects, obstacles)
+        cookie_selection.each do |biscuit|
+          sfx << horizontal_effects(biscuit)
+          details << basic_stripe_sweet(biscuit, objects, width, obstacles).map{ |o| o[:matches] }
+        end
+        matched_details = [{ matches: details.flatten.uniq.sort, shape: :LINE, intersects: nil, special_type: nil }]
+        cookie_selection << result.first
+        cookie_selection << result.last
+        return [matched_details, sfx, cookie_selection]
 
       elsif [result.first.type, result.last.type].all? { |o| [:MINT_SWEET, :GOBSTOPPER].include?(o) } ||
             [result.first.type, result.last.type].all? { |o| [:PURPLE_SWEET, :GOBSTOPPER].include?(o) }
@@ -379,6 +392,33 @@ module UrbAnimationHelper
     matched_details
   end
 
+  #------------------------------------------------------------------
+  # identify the objects that need to bounce out from sweet cookie
+  #------------------------------------------------------------------
+  def self.sweet_cookie(object1, object2, objects, obstacles)
+    urb = objects.find_all{ |urb| !Settings::SWEET_TREATS.include?(urb.type) }.sample
+    collective = objects.find_all{ |o| o.type == urb.type }
+    treat = [object1, object2].find{ |o| o.type != :COOKIE }
+    cookie_transformation(collective, treat.type)
+    sweet_fade(object1)
+    sweet_fade(object2)
+    collective
+    # p matches = collective.map{ |o| o.location }.sort
+    # matched_details = [{ matches: matches, shape: :LINE, intersects: nil, special_type: nil }]
+    # GameModule.obstacle_contained_in_match(obstacles, matched_details)
+    # matched_details
+  end
+
+  def self.cookie_transformation(list, type)
+    list.each do |l|
+      l.type = type
+      sweet_transformation(l)
+    end
+  end
+
+  #------------------------------------------------------------------
+  # identify the objects that need to bounce out from cookie gobstopper
+  #------------------------------------------------------------------
   def self.cookie_gobstopper(object1, object2)
   end
 
@@ -516,11 +556,5 @@ module UrbAnimationHelper
   #----------------------------------------------------------
   def self.bomb_effects(object)
     [SpecialFX.new('assets/explosion.png', object.x, object.y, Settings::BOUNCE_FPS, 2000, 16, 1, object.type)]
-  end
-
-  def self.double_gobstopper(object1, object2)
-  end
-
-  def self.sweet_cookie(object1, object2)
   end
 end

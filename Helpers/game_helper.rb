@@ -99,7 +99,6 @@ module GameHelper
 
   def self.return_matches_from_hash_in_order(match_details)
     match_temp = []
-
     match_details.each do |md|
       match_temp << md[:matches]
     end
