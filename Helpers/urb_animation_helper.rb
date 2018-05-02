@@ -310,10 +310,10 @@ module UrbAnimationHelper
   def self.basic_stripe_sweet(object, objects, width, obstacles)
     if object.type == :MINT_SWEET # horizontal
       loc = object.location / width
-      matches = objects.find_all { |o| o.location / width == loc && o.location != object.location }.map { |o| o.location }
+      matches = objects.find_all { |o| o.location / width == loc && o.location != object.location && !Settings::SWEET_TREATS.include?(o.type)}.map { |o| o.location }
     else # vertical
       loc = object.location % width
-      matches = objects.find_all { |o| o.location % width == loc && o.location != object.location }.map { |o| o.location }
+      matches = objects.find_all { |o| o.location % width == loc && o.location != object.location && !Settings::SWEET_TREATS.include?(o.type)}.map { |o| o.location }
     end
     matched_details = [{ matches: matches, shape: :LINE, intersects: nil, special_type: nil }]
     GameModule.obstacle_contained_in_match(obstacles, matched_details)
