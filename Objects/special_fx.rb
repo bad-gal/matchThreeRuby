@@ -16,13 +16,19 @@ class SpecialFX
     @image_array = []
     @scale_x = 1
     0.upto(size - 1) do
-      @image_array << Gosu::Image.load_tiles(filename, WIDTH, HEIGHT) unless type == :GOBSTOPPER
-      @image_array << Gosu::Image.load_tiles(filename, 240, 240) if type == :GOBSTOPPER
+      if type != :GOBSTOPPER && type != :GOB_COOKIE
+        @image_array << Gosu::Image.load_tiles(filename, WIDTH, HEIGHT)
+      elsif type == :GOBSTOPPER
+        @image_array << Gosu::Image.load_tiles(filename, 240, 240)
+      elsif type == :GOB_COOKIE
+        @image_array << Gosu::Image.load_tiles(filename, 42, 42)
+      end
     end
     @scale_y = []
     @angles = []
     @centre_x = []
     @centre_y = []
+    @type = type
 
     if type == :PURPLE_SWEET
       @angles = [0, 180]
@@ -58,6 +64,18 @@ class SpecialFX
       end
     end
 
+    if type == :GOB_COOKIE
+      # @x = []
+      # @y = []
+      @x = [x]
+      @y = [y]
+      @angles << 0
+      @centre_x << 0.5
+      @centre_y << 0.5
+      @scale_y << 1
+      @scale_x << 1
+    end
+
     if type == :GOBSTOPPER
       @x = [x]
       @y = [y]
@@ -84,9 +102,17 @@ class SpecialFX
 
   def draw
     return if @animation_finished
-    @image_array.each_with_index do |image, i|
-      img = image[@current_frame]
-      img.draw_rot(@x[i], @y[i], 0, @angles[i], @centre_x[i], @centre_y[i], @scale_x, @scale_y[i])
+
+    if @type == :GOB_COOKIE
+      @image_array.each_with_index do |image, i|
+        img = image[@current_frame]
+        img.draw(@x[i], @y[i], 0, @scale_x, @scale_y[i])
+      end
+    else
+      @image_array.each_with_index do |image, i|
+        img = image[@current_frame]
+        img.draw_rot(@x[i], @y[i], 0, @angles[i], @centre_x[i], @centre_y[i], @scale_x, @scale_y[i])
+      end
     end
   end
 end
