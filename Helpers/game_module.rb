@@ -133,37 +133,39 @@ module GameModule
     urb_type = objects[e].type
     matches << element
 
-    ((rows - 1) - row).times do |i|
-      if map[element + (width * (i + 1))] == 1
-        loc = objects.index(objects.find { |j| j.location == (element + (width * (i + 1))) && !j.off_screen })
+    unless Settings::SWEET_TREATS.include?(urb_type)
+      ((rows - 1) - row).times do |i|
+        if map[element + (width * (i + 1))] == 1
+          loc = objects.index(objects.find { |j| j.location == (element + (width * (i + 1))) && !j.off_screen })
 
-        if !loc.nil?
-          if objects[loc].type == urb_type && objects[loc].visible == :visible && objects[loc].active == true && !objects[loc].off_screen
-            unless matches.include?(element + (width * (i + 1)))
-              matches << element + (width * (i + 1))
+          if !loc.nil?
+            if objects[loc].type == urb_type && objects[loc].visible == :visible && objects[loc].active == true && !objects[loc].off_screen
+              unless matches.include?(element + (width * (i + 1)))
+                matches << element + (width * (i + 1))
+              end
+            else break
             end
           else break
           end
         else break
         end
-      else break
       end
-    end
 
-    row.times do |i|
-      if map[element - (width * (i + 1))] == 1
-        loc = objects.index(objects.find { |j| j.location == (element - (width * (i + 1))) && !j.off_screen })
+      row.times do |i|
+        if map[element - (width * (i + 1))] == 1
+          loc = objects.index(objects.find { |j| j.location == (element - (width * (i + 1))) && !j.off_screen })
 
-        if !loc.nil?
-          if objects[loc].type == urb_type && objects[loc].visible == :visible && objects[loc].active == true && !objects[loc].off_screen
-            unless matches.include?(element - (width * (i + 1)))
-              matches << element - (width * (i + 1))
+          if !loc.nil?
+            if objects[loc].type == urb_type && objects[loc].visible == :visible && objects[loc].active == true && !objects[loc].off_screen
+              unless matches.include?(element - (width * (i + 1)))
+                matches << element - (width * (i + 1))
+              end
+            else break
             end
           else break
           end
         else break
         end
-      else break
       end
     end
 
@@ -181,40 +183,41 @@ module GameModule
     e = objects.index(objects.find { |i| i.location == element && !i.off_screen })
     urb_type = objects[e].type
     column = element % width
-
     matches << element
 
-    ((width - 1) - column).times do |i|
-      if map[element + (i + 1)] == 1
-        loc = objects.index(objects.find { |j| j.location == (element + (i + 1)) && !j.off_screen })
+    unless Settings::SWEET_TREATS.include?(urb_type)
+      ((width - 1) - column).times do |i|
+        if map[element + (i + 1)] == 1
+          loc = objects.index(objects.find { |j| j.location == (element + (i + 1)) && !j.off_screen })
 
-        if !loc.nil?
-          if objects[loc].type == urb_type && objects[loc].visible == :visible && objects[loc].active == true && !objects[loc].off_screen
-            unless matches.include?(element + (i + 1))
-              matches << element + (i + 1)
+          if !loc.nil?
+            if objects[loc].type == urb_type && objects[loc].visible == :visible && objects[loc].active == true && !objects[loc].off_screen
+              unless matches.include?(element + (i + 1))
+                matches << element + (i + 1)
+              end
+            else break
             end
           else break
           end
         else break
         end
-      else break
       end
-    end
 
-    column.times do |i|
-      if map[element - (i + 1)] == 1
-        loc = objects.index(objects.find { |j| j.location == (element - (i + 1)) && !j.off_screen })
+      column.times do |i|
+        if map[element - (i + 1)] == 1
+          loc = objects.index(objects.find { |j| j.location == (element - (i + 1)) && !j.off_screen })
 
-        if !loc.nil?
-          if objects[loc].type == urb_type && objects[loc].visible == :visible && objects[loc].active == true && !objects[loc].off_screen
-            unless matches.include?(element - (i + 1))
-              matches << element - (i + 1)
+          if !loc.nil?
+            if objects[loc].type == urb_type && objects[loc].visible == :visible && objects[loc].active == true && !objects[loc].off_screen
+              unless matches.include?(element - (i + 1))
+                matches << element - (i + 1)
+              end
+            else break
             end
           else break
           end
         else break
         end
-      else break
       end
     end
 

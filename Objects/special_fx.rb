@@ -65,8 +65,6 @@ class SpecialFX
     end
 
     if type == :GOB_COOKIE
-      # @x = []
-      # @y = []
       @x = [x]
       @y = [y]
       @angles << 0
