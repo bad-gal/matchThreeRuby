@@ -643,6 +643,8 @@ class Main
       if details.nil? && details2.nil?
         sweet_treat = [@urb_object1.type, @urb_object2.type].any? { |o| Settings::SWEET_TREATS.include?(o) }
         if sweet_treat
+          quantity = [@urb_object1.type, @urb_object2.type].count { |o| Settings::SWEET_TREATS.include?(o) }
+          @level_manager.add_treat_score(quantity)
           dets = UrbAnimationHelper.special_treat(@urb_object1, @urb_object2, @objects, @map_width, @map_height, @obstacles)
           reset_urb_selectors
           @swap_one = nil

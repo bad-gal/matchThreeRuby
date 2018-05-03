@@ -303,6 +303,10 @@ class Levelmanager
     @scores[:score] += 600 if cement?
   end
 
+  def add_treat_score(quantity)
+    @scores[:score] += (800 * quantity)
+  end
+
   def add_to_urb_counter(type)
     case type
     when :pac
