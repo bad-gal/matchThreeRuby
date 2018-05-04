@@ -92,19 +92,6 @@ module PossibleMoves
 
     return pairs.uniq
   end
-  
-  # def self.valid_options(one, two, three, objects)
-#     valid = objects.find { |o| o.location == one && !o.off_screen }
-#     return false if valid.nil?
-#
-#     valid = objects.find { |o| o.location == two && !o.off_screen }
-#     return false if valid.nil?
-#
-#     valid = objects.find { |o| o.location == three && !o.off_screen }
-#     return false if valid.nil?
-#
-#     true
-#   end
 
   def self.find_potential_matches(objects, width, map_size, pairs)
     potentials = []
@@ -379,7 +366,7 @@ module PossibleMoves
           end
         end
       end
-      
+
       if (pair.first - pair.last).abs == (width - 1)
 
         mid_cell = objects.find { |m| m.location == pair.last + 1 && !m.off_screen }
@@ -604,7 +591,7 @@ module PossibleMoves
     find_potential_matches(objects, width, map_size, pairs)
     remove_suggestions(testing_time, objects, extract_obstacles, width)
   end
-  
+
   def self.remove_suggestions(array_data, objects, glass_obstacle, width)
     array_data.reverse.each do |arr|
       locations = glass_obstacle.map(&:location)
@@ -624,6 +611,10 @@ module PossibleMoves
     array_data
   end
 
+  def self.sweet_treat(objects)
+    objects.find_all{ |o| Settings::SWEET_TREATS.include?(o.type) && !o.off_screen }
+  end
+
   def self.all_potential_matches(objects, obstacles, map_width, map)
     obstacle_matches = find_matches_under_obstacles(obstacles, objects, map_width, map.size)
     pairs = find_object_pairs(objects, map_width, map.size)
@@ -632,6 +623,13 @@ module PossibleMoves
     if !obstacle_matches.empty?
       obstacle_matches.each do |obs|
         potential_matches << obs
+      end
+    end
+
+    treats = sweet_treat(objects)
+    unless treats.nil?
+      treats.each do |treat|
+        potential_matches << [treat.location]
       end
     end
 

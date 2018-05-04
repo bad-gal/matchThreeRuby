@@ -57,6 +57,14 @@ module UrbAnimationHelper
       filename = 'assets/baby_bounce.png'
     when :lady
       filename = 'assets/lady_bounce.png'
+    when :MINT_SWEET
+      filename = 'assets/mint_sweet_bounce.png'
+    when :PURPLE_SWEET
+      filename = 'assets/purple_sweet_bounce.png'
+    when :COOKIE
+      filename = 'assets/cookie_bounce.png'
+    when :GOBSTOPPER
+      filename = 'assets/gobstopper_bounce.png'
     end
     object.change_image(filename)
     object.add_frame_data(5, Settings::BOUNCE_DURATION, Settings::BOUNCE_FPS)
@@ -83,6 +91,14 @@ module UrbAnimationHelper
       filename = 'assets/baby_anim.png'
     when :lady
       filename = 'assets/lady_anim.png'
+    when :MINT_SWEET
+      filename = 'assets/mint_sweet.png'
+    when :PURPLE_SWEET
+      filename = 'assets/purple_sweet.png'
+    when :COOKIE
+      filename = 'assets/cookie.png'
+    when :GOBSTOPPER
+      filename = 'assets/gobstopper.png'
     end
     object.change_image(filename)
     object.add_frame_data(5, Gosu.random(9999, 15_001).to_i, Settings::FPS)
