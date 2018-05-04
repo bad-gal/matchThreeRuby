@@ -15,6 +15,10 @@ module GameHelper
     Gosu::Sample.new('sounds/explosion1.ogg')
   end
 
+  def self.load_lightning_sound
+    Gosu::Sample.new('sounds/electric.wav')
+  end
+
   def self.convert_matches_to_cells(matches, objects, level_manager)
     match_cells = []
 

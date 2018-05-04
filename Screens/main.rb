@@ -126,6 +126,7 @@ class Main
     @bounce_sound = GameHelper.load_bounce_sound
     @treat_bounce_sound = GameHelper.load_treat_bounce_sound
     @explosion_sound = GameHelper.load_explosion_sound
+    @lightning_sound = GameHelper.load_lightning_sound
   end
 
   def load_selectors
@@ -669,6 +670,8 @@ class Main
           end
           if xplode_count > 0
             @explosion_sound.play
+          else
+            @lightning_sound.play
           end
           @counter = 0
           initial_special
