@@ -125,6 +125,7 @@ class Main
     @freed_sound = GameHelper.load_sounds
     @bounce_sound = GameHelper.load_bounce_sound
     @treat_bounce_sound = GameHelper.load_treat_bounce_sound
+    @explosion_sound = GameHelper.load_explosion_sound
   end
 
   def load_selectors
@@ -659,8 +660,15 @@ class Main
           @sfx = dets[1]
           @sfx.flatten!
           @special_objects = dets[2]
+          xplode_count = 0
           @special_objects.each do |sp|
-            GameModule.change_object_type([sp], 0, @urbs_in_level) if sp.type == :GOBSTOPPER
+            if sp.type == :GOBSTOPPER
+              GameModule.change_object_type([sp], 0, @urbs_in_level)
+              xplode_count += 1
+            end
+          end
+          if xplode_count > 0
+            @explosion_sound.play
           end
           @counter = 0
           initial_special
