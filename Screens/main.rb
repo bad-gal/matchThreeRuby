@@ -172,7 +172,7 @@ class Main
 
   def load_variables
     @shuffling_mode = 0
-    @swap_timer = 0
+    @swap_timer = Gosu::milliseconds
     @bounce_timer = 0
   end
 
@@ -536,8 +536,8 @@ class Main
 
   def setup_objects
     @urbs_in_level = @level_manager.urbs_in_level
-    @objects = MethodLoader.create_urbs(@cells, @base_tiles, @level_manager, @obstacles)
-    # @objects = MethodLoader.fake_urbs(@cells, @level, @base_tiles, @level_manager, @obstacles)
+    # @objects = MethodLoader.create_urbs(@cells, @base_tiles, @level_manager, @obstacles)
+    @objects = MethodLoader.fake_urbs(@cells, @level, @base_tiles, @level_manager, @obstacles)
   end
 
   def find_matches
