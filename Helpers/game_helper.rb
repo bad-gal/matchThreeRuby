@@ -7,6 +7,10 @@ module GameHelper
     Gosu::Sample.new('sounds/pac.mp3')
   end
 
+  def self.load_treat_bounce_sound
+    Gosu::Sample.new('sounds/creep.wav')
+  end
+
   def self.convert_matches_to_cells(matches, objects, level_manager)
     match_cells = []
 

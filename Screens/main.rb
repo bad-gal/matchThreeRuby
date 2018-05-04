@@ -124,6 +124,7 @@ class Main
     @small_font = Gosu::Font.new(12)
     @freed_sound = GameHelper.load_sounds
     @bounce_sound = GameHelper.load_bounce_sound
+    @treat_bounce_sound = GameHelper.load_treat_bounce_sound
   end
 
   def load_selectors
@@ -444,7 +445,11 @@ class Main
           end
           @bounce_timer = Gosu.milliseconds
           @swap_timer = Gosu.milliseconds
-          @bounce_sound.play
+          if Settings::SWEET_TREATS.include?(@bouncing_objects.first.type)
+            @treat_bounce_sound.play
+          else
+            @bounce_sound.play
+          end
         elsif @bounce_timer > 0 && Gosu.milliseconds > (@bounce_timer + 2500)
           stop_bounce
         end
