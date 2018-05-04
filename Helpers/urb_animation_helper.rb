@@ -112,6 +112,14 @@ module UrbAnimationHelper
       filename = 'assets/nerd_girl_anim.png'
     when :pigtails
       filename = 'assets/pigtails_anim.png'
+    when :MINT_SWEET
+      filename = 'assets/mint_sweet.png'
+    when :PURPLE_SWEET
+      filename = 'assets/purple_sweet.png'
+    when :GOBSTOPPER
+      filename = 'assets/gobstopper.png'
+    when :COOKIE
+      filename = 'assets/cookie.png'
     end
     [filename, w, h]
   end
@@ -200,7 +208,6 @@ module UrbAnimationHelper
   # assign the right method depending on the sweet treats
   #------------------------------------------------------
   def self.special_treat(object1, object2, objects, width, height, obstacles)
-    p "This is a special treat"
     result = []
     arr = [object1, object2]
 
@@ -311,10 +318,10 @@ module UrbAnimationHelper
   def self.basic_stripe_sweet(object, objects, width, obstacles)
     if object.type == :MINT_SWEET # horizontal
       loc = object.location / width
-      matches = objects.find_all { |o| o.location / width == loc && o.location != object.location && !Settings::SWEET_TREATS.include?(o.type)}.map { |o| o.location }
+      matches = objects.find_all { |o| o.location / width == loc && o.location != object.location }.map { |o| o.location }
     else # vertical
       loc = object.location % width
-      matches = objects.find_all { |o| o.location % width == loc && o.location != object.location && !Settings::SWEET_TREATS.include?(o.type)}.map { |o| o.location }
+      matches = objects.find_all { |o| o.location % width == loc && o.location != object.location }.map { |o| o.location }
     end
     matched_details = [{ matches: matches, shape: :LINE, intersects: nil, special_type: nil }]
     GameModule.obstacle_contained_in_match(obstacles, matched_details)
@@ -349,10 +356,10 @@ module UrbAnimationHelper
     matches = []
 
     loc = object1.location / width
-    matches << objects.find_all { |o| o.location / width == loc && !Settings::SWEET_TREATS.include?(o.type) && o.location != object1.location }.map { |o| o.location }
+    matches << objects.find_all { |o| o.location / width == loc && o.location != object1.location }.map { |o| o.location }
 
     loc = object2.location % width
-    matches << objects.find_all { |o| o.location % width == loc && !Settings::SWEET_TREATS.include?(o.type) && o.location != object2.location }.map { |o| o.location }
+    matches << objects.find_all { |o| o.location % width == loc && o.location != object2.location }.map { |o| o.location }
 
     matches.flatten!.uniq
     matched_details = [{ matches: matches, shape: :LINE, intersects: nil, special_type: nil }]
@@ -429,7 +436,7 @@ module UrbAnimationHelper
     collection << gob.location
 
     sweet_fade(cookie)
-    p matched_details = [{ matches: collection.sort, shape: :LINE, intersects: nil, special_type: nil }]
+    matched_details = [{ matches: collection.sort, shape: :LINE, intersects: nil, special_type: nil }]
     GameModule.obstacle_contained_in_match(obstacles, matched_details)
     matched_details
   end

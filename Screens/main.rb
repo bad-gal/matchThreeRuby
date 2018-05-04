@@ -536,8 +536,8 @@ class Main
 
   def setup_objects
     @urbs_in_level = @level_manager.urbs_in_level
-    # @objects = MethodLoader.create_urbs(@cells, @base_tiles, @level_manager, @obstacles)
-    @objects = MethodLoader.fake_urbs(@cells, @level, @base_tiles, @level_manager, @obstacles)
+    @objects = MethodLoader.create_urbs(@cells, @base_tiles, @level_manager, @obstacles)
+    # @objects = MethodLoader.fake_urbs(@cells, @level, @base_tiles, @level_manager, @obstacles)
   end
 
   def find_matches

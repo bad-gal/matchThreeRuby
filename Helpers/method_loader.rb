@@ -51,9 +51,9 @@ module MethodLoader
   def self.fake_maps(level)
     case level
     when 1
-      [2, 1, 5, 1, 2,
-       1, 3, 10, 4, 1,
-       2, 10, 1, 10, 5,
+      [2, 1, 4, 1, 2,
+       1, 12, 2, 12, 1,
+       2, 13, 11, 10, 5,
        2, 5, 4, 5, 2]
     when 2
        [2, 1, 4,
