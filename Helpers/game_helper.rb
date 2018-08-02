@@ -93,15 +93,13 @@ module GameHelper
   end
 
   def self.valid_swap?(object_a, object_b)
-    p moveable = object_a.status && object_b.status == :NONE
-    # p different_types = object_a.type == object_b.type && Settings::SWEET_TREATS.include?(object_a.type) ? false : true
+    moveable = object_a.status && object_b.status == :NONE
     different_types = object_a.type != object_b.type || (object_a.type == object_b.type && Settings::SWEET_TREATS.include?(object_a.type))
-    p moveable && different_types
+    moveable && different_types
   end
 
   def self.available_paths(graph, map_width)
     vacancies = graph.get_vacancies
-    puts "vacancies  = #{vacancies}"
     available_paths = []
     vacancies.each do |nv|
       available_paths << graph.find_start_when_finish_known(nv.first, nv.last, map_width)
@@ -147,7 +145,7 @@ module GameHelper
   end
 
   def self.set_new_vacancy_details(objects, homeless_objects, width, cells, collapsed_matches, graph)
-    p new_vacancies = graph.get_vacancies
+    new_vacancies = graph.get_vacancies
     new_vacancy_details = []
 
     new_vacancies.each_with_index do |nv, i|
@@ -281,13 +279,10 @@ module GameHelper
     end
 
     paths.sort_by!(&:length) if paths.size > 1
-    p paths
     paths.first
   end
 
   def self.viable_objects2(vacancies, graph, map_width)
-    p "viable objects 2"
-    p "vacancies = #{vacancies.reverse}"
     path = []
     vacancies.reverse_each do |v|
       path << if v.last.zero?
@@ -310,9 +305,8 @@ module GameHelper
 
     # must do check if column is removed and has invisible cells above
     if viable.empty?
-      p 'checking if there is a viable exception...'
       exception = viable_exceptions(vacancies, graph)
-      p viable = exception unless exception.empty?
+      viable = exception unless exception.empty?
     end
     viable
   end
@@ -340,9 +334,8 @@ module GameHelper
 
     # must do check if column is removed and has invisible cells above
     if viable.empty?
-      p 'checking if there is a viable exception...'
       exception = viable_exceptions(vacancies, graph)
-      p viable = exception unless exception.empty?
+      viable = exception unless exception.empty?
     end
     viable
   end

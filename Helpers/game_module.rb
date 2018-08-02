@@ -18,9 +18,6 @@ module GameModule
       end
     end
 
-    p "find auto matches", matched_details
-    p matched_details.size
-    p matched_details.uniq
     matched_details.each_with_index do |match1, i|
       matched_details.each_with_index do |match2, j|
         if i != j
@@ -38,8 +35,7 @@ module GameModule
     # also stops any objects bouncing out if they are under
     # an obstacle and obstacle not yet broken
     obstacle_contained_in_match(obstacles, matched_details)
-    p "automatic matches"
-    p matched_details
+    matched_details
   end
 
   def self.get_shape(matches, width, user_select)
@@ -269,7 +265,6 @@ module GameModule
     removable = []
 
     match_details.each do |details|
-      p details
       unless details[:shape] == :LINE
         object = objects.find { |o| o.location == details[:intersects] && !o.off_screen }
         details[:matches].delete(object.location)
@@ -285,7 +280,6 @@ module GameModule
   end
 
   def self.obstacle_contained_in_match(obstacles, match_details)
-    p "match_details = #{match_details}"
     matches = []
     match_details.each do |match|
       match[:matches].each do |m|
@@ -298,7 +292,6 @@ module GameModule
       next unless [Settings::OBSTACLE_STATE.find_index(:GLASS), Settings::OBSTACLE_STATE.find_index(:WOOD), Settings::OBSTACLE_STATE.find_index(:CEMENT)].any? { |obstacle| obstacle == obs.status }
       if matches.include? obs.location
         obs.counter -= 1
-        p "counter -> #{obs.counter} for location #{obs.location}"
         obs.change(obs.status)
         unless obs.counter.zero?
           # remove match element from array

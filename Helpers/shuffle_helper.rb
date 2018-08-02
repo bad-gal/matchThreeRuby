@@ -132,7 +132,7 @@ module ShuffleHelper
     0.upto(width - 1) do |col|
       if !temp.include?(col)
         clear_cols += 1
-        p arr << col
+        arr << col
         if clear_cols == 1
           sum += 1
         end

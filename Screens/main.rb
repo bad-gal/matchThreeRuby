@@ -13,7 +13,6 @@ require_relative '../Objects/image'
 require_relative '../Objects/special_fx'
 require_relative '../Metrics/path'
 require_relative '../Metrics/graph'
-require 'byebug'
 
 class Main
   MATCH_STATE = %i[auto ready swap reset user_match shuffle special].freeze
@@ -36,12 +35,6 @@ class Main
     load_instructions
     @to_test = 0
     @sfx = []
-    p "wooden obstacles"
-    @objects.each do |ob|
-      if ob.status == :WOOD
-        p ob.type
-      end
-    end
   end
 
   def update
@@ -70,6 +63,10 @@ class Main
 
     @pause_value = 0 if @pause_value == 2
     @help_value = 0 if @help_value == 2
+
+    if @pause_value == 1 || @help_value == 1
+      stop_bounce
+    end
 
     unless @sfx.empty?
       @sfx.each(&:update)
@@ -154,7 +151,7 @@ class Main
   def load_instructions
     file = FileOperation.new('save/instructions.json')
     @instructions = file.load_data
-    p @instructions["data"][@level]["guide"]
+    @instructions["data"][@level]["guide"]
   end
 
   def load_tiles
@@ -347,6 +344,7 @@ class Main
       generate_match_data
     when STAGE.find_index(:match)
       remove_matches
+
       sp_cells = []
       @special_objects.each do |sp|
         sp_cells << sp.cell
@@ -363,12 +361,24 @@ class Main
     when STAGE.find_index(:rearrange)
       #change special object to regular urb
       GameModule.change_object_type(@special_objects, 0, @urbs_in_level)
+
       @special_objects.each do |sp|
         sp.change_loop(true)
         sp.add_frame_data(5, Gosu.random(9999, 15_001).to_i, Settings::FPS)
       end
+      @special_objects = []
+
       manage_remaining_objects
     when STAGE.find_index(:replace)
+      if !@special_objects.empty?
+        GameModule.change_object_type(@special_objects, 0, @urbs_in_level)
+
+        @special_objects.each do |sp|
+          sp.change_loop(true)
+          sp.add_frame_data(5, Gosu.random(9999, 15_001).to_i, Settings::FPS)
+        end
+        @special_objects = []
+      end
       add_new_objects
     end
   end
@@ -429,8 +439,6 @@ class Main
       potential_matches = PossibleMoves.all_potential_matches(@objects, @obstacles, @map_width, @map)
 
       if @to_test.zero?
-        p "real potential matches =>", potential_matches
-        p "won? -> #{@level_manager.level_completed?}"
         @to_test = 1
       end
 
@@ -439,7 +447,6 @@ class Main
         @shuffle_timer = Gosu.milliseconds + 1200
       else
         if Gosu.milliseconds > (@swap_timer + 10000) && @bounce_timer.zero?
-          p "time's up"
           possible_sample = potential_matches.sample
           @bouncing_objects = PossibleMoves.get_bounce_objects(possible_sample, @objects)
           @bouncing_objects.each do |bounce|
@@ -463,8 +470,12 @@ class Main
     @swap_timer = Gosu.milliseconds
     @bounce_timer = 0
 
-    @bouncing_objects.each do |bounce|
-      UrbAnimationHelper.regular_image(bounce)
+    if !@bouncing_objects.nil?
+      if !@bouncing_objects.empty?
+        @bouncing_objects.each do |bounce|
+          UrbAnimationHelper.regular_image(bounce)
+        end
+      end
     end
   end
 
@@ -543,18 +554,15 @@ class Main
 
   def setup_objects
     @urbs_in_level = @level_manager.urbs_in_level
-    # @objects = MethodLoader.create_urbs(@cells, @base_tiles, @level_manager, @obstacles)
-    @objects = MethodLoader.fake_urbs(@cells, @level, @base_tiles, @level_manager, @obstacles)
+    @objects = MethodLoader.create_urbs(@cells, @base_tiles, @level_manager, @obstacles)
   end
 
   def find_matches
-    p '...finding automatic matches'
     return unless @counter.zero?
     @match_details = GameModule.find_automatic_matches(@objects, @map_width, @map, @obstacles)
     if @match_details.empty?
       initial_ready
       reset_variables
-      p 'GO TO READY'
     else
       @swap_timer = Gosu.milliseconds
       generate_match_data
@@ -562,7 +570,6 @@ class Main
   end
 
   def generate_match_data
-    p '...generate match data'
     @matches = GameHelper.return_matches_from_hash_in_order(@match_details)
     GameHelper.remove_broken_obstacles(@matches, @obstacles, @graph, @level_manager)
     GameModule.remove_sweet_treat_from_matches(@match_details, @objects)
@@ -590,7 +597,6 @@ class Main
   end
 
   def replace_or_rearrange
-    p '...replace or rearrange'
     @effects.clear
     @matched_copy.clear
     @counter = 0
@@ -724,9 +730,7 @@ class Main
 
   def manage_remaining_objects
     if @counter.zero?
-      p '...manage remaining objects'
       @moved_urbs = MethodLoader.identify_new_positions(@graph, @move_down, @move_to, @objects, @cells)
-      p @moved_urbs.size
       @counter = if @moved_urbs.empty?
                    2
                  else
@@ -736,7 +740,6 @@ class Main
       finished = GameHelper.move_remaining(@moved_urbs, @cells, @graph)
       @counter = 2 if finished
     elsif @counter == 2
-      puts "vacancies after remaining urbs moved down = #{@graph.get_vacancies}"
       reset_variables
       @match_details = []
       @cell_vacancies = []
@@ -751,21 +754,21 @@ class Main
 
   def add_new_objects
     if @counter.zero?
-      p vacancies = @graph.get_vacancies
-      p @viable = GameHelper.viable_objects(vacancies, @graph, @map_width)
+      vacancies = @graph.get_vacancies
+      @viable = GameHelper.viable_objects(vacancies, @graph, @map_width)
       return no_viable_objects if @viable.empty?
-      p @returning_objects = @objects.find_all(&:off_screen).take(@viable.size)
+
+      @returning_objects = @objects.find_all(&:off_screen).take(@viable.size)
+
       blocking_urbs = MethodLoader.show_blocking_objects(@viable, @graph, @obstacles)
       @counter = 1
       @index = -1
       unless blocking_urbs.empty?
         # will need to move this into it's own section as it is inside @counter = 0 when I am setting it to @counter = 10
-        p "WE HAVE ENCOUNTERED BLOCKED URBS!!!"
         if @index == -1
           @counter = 10
           @affected = MethodLoader.affected_paths(@viable, blocking_urbs)
           @affected = MethodLoader.sort_paths(@affected)
-          p @affected.size
           @index = 0
         end
       end
@@ -779,7 +782,6 @@ class Main
       @counter = 3 if complete == @objects.size
 
     elsif @counter == 3
-      p 'objects moved into new positions'
       @returning_objects.clear
       clear_viable_variables
       @counter = 0
@@ -791,13 +793,11 @@ class Main
     end
 
     if @counter == 11
-      # p @objects.map(&:path).uniq.flatten
       if @objects.map(&:path).uniq.flatten.empty?
         @index += 1
         @counter = 10
         if @index == @affected.size
           @counter = 12
-          p 'blocking urbs size ->', blocking_urbs
         end
       end
     end
@@ -809,7 +809,6 @@ class Main
   end
 
   def no_viable_objects
-    p 'no viable objects'
     @match_details = []
     @cell_vacancies = []
     @collapsed_match = []
@@ -833,23 +832,6 @@ class Main
     initial_state
   end
 
-  def delete_after_use
-    puts "move down = #{@move_down}" unless @move_down.nil?
-    puts "move to = #{@move_to}" unless @move_to.nil?
-    puts "counter = #{@counter}"
-    puts "moved urbs = #{@moved_urbs.size}" unless @moved_urbs.nil?
-    puts "match details = #{@match_details}" unless @match_details.nil?
-    puts "homeless cells = #{@homeless_cells}" unless @homeless_cells.nil?
-    puts "obs locs = #{@obstacle_locations}" unless @obstacle_locations.nil?
-    puts "cell vacancies = #{@cell_vacancies}" unless @cell_vacancies.nil?
-    puts "collapsed match = #{@collapsed_match}" unless @collapsed_match.nil?
-    puts "new v dets = #{@new_vacancy_details}" unless @new_vacancy_details.nil?
-    puts "new vacancy = #{@new_vacancies}" unless @new_vacancies.nil?
-    puts "matched pos = #{@matched_positions}" unless @matched_positions.nil?
-    puts "starting points = #{@starting_points}" unless @starting_points.nil?
-    puts "rtn objs = #{@returning_objects.size}" unless @returning_objects.nil?
-  end
-
   def select_urb(object)
     if @level_manager.scores[:moves] > 0
       @urb_one == -1 ? @urb_one = object.location : @urb_two = object.location
@@ -871,14 +853,10 @@ class Main
           end
 
           stop_bounce if @bounce_timer > 0
-          p "#{object.location}, #{object.cell}, #{object.active}, #{object.type}"
-          p "#{object.inspect}"
         else
           reset_urb_selectors
         end
       else
-        p "#{object.location}, #{object.cell}, #{object.active}, #{object.type}"
-        p "#{object.inspect}"
         @urb_object1 = @objects.find { |ob| ob.location == @urb_one  && !ob.off_screen }
         @swap_timer = Gosu.milliseconds
         assign_selector(@selectors[0], @urb_object1)

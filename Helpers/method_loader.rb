@@ -51,9 +51,9 @@ module MethodLoader
   def self.fake_maps(level)
     case level
     when 1
-      [2, 1, 4, 1, 2,
-       1, 12, 2, 12, 1,
-       2, 13, 11, 10, 5,
+      [2, 1, 10, 1, 2,
+       1, 2, 2, 5, 1,
+       2, 1, 11, 10, 5,
        2, 5, 4, 5, 2]
     when 2
        [2, 1, 4,
@@ -193,7 +193,6 @@ module MethodLoader
 
   def self.move_new_objects(objects, viable, urbs_in_level, graph, cells)
     GameModule.change_object_type(objects, 0, urbs_in_level)
-    p "viable move new objects -> #{viable}"
     viable.each_with_index do |v, i|
       start = [objects[i].x, objects[i].y]
       v[:path].each_with_index do |path, num|
@@ -264,7 +263,6 @@ module MethodLoader
         blocking << bl unless obstacle_cells.include?(bl)
       end
     end
-    p "blocking objects -> ", blocking.reject(&:empty?).uniq.sort.reverse
     blocking.reject(&:empty?).uniq.sort.reverse
   end
 
@@ -275,7 +273,6 @@ module MethodLoader
     blocked.each do |bl|
       blocking << bl unless obstacle_cells.include?(bl)
     end
-    p "blocking objects -> ", blocking.reject(&:empty?).uniq.sort.reverse
     blocking.reject(&:empty?).uniq.sort.reverse
   end
 
@@ -309,12 +306,7 @@ module MethodLoader
     arr = []
 
     blocking_urbs = blocking_affect(affect, graph, obstacles)
-    p affect
-    puts "blocking urbs -> #{blocking_urbs}"
     if blocking_urbs.empty?
-      p "path is no longer blocked"
-      # if no elements from path are contained in blocking_urbs
-      p "affect path = #{affect[:path]}"
       affect[:path].each do |node|
         to_move = objects.find { |ob| ob.cell == node && !ob.off_screen }
         unless to_move.nil?
@@ -349,11 +341,9 @@ module MethodLoader
           unless to_move.nil?
             arr << to_move unless arr.include?(to_move)
             if to_move.path.empty?
-              p "was empty path"
               move_x = to_move.x
               move_y = to_move.y
             else
-              p "path not empty for cell #{node}"
               move_x = to_move.path.last[0]
               move_y = to_move.path.last[1]
             end
@@ -385,8 +375,6 @@ module MethodLoader
   def self.find_last_path_cells_that_match(viable_objects, cell)
     viable_objects.reverse.each_with_index do |object, i|
       if object[:path].last == cell
-        p "path is #{object[:path]}"
-        p "match found at #{object[:vacancy]} for cell #{cell}"
         size = object[:path].size
         object[:path].delete_at(size - 1)
       end

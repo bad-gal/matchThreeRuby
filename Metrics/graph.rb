@@ -289,14 +289,6 @@ class Graph
     []
   end
 
-  def get_graph
-    @grid.each do |grid|
-      grid.each do |g|
-        p "[#{g.x},#{g.y}]: occupied = #{g.occupied} - obstacle = #{g.obstacle} - invisible = #{g.invisible}"
-      end
-    end
-  end
-
   def get_invisibles
     invisibles = []
 
