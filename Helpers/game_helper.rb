@@ -1,22 +1,22 @@
 module GameHelper
   def self.load_sounds
-    Gosu::Sample.new('sounds/freed2.mp3')
+    Gosu::Song.new('sounds/freed2.mp3')
   end
 
   def self.load_bounce_sound
-    Gosu::Sample.new('sounds/pac.mp3')
+    Gosu::Song.new('sounds/pac.mp3')
   end
 
   def self.load_treat_bounce_sound
-    Gosu::Sample.new('sounds/creep.wav')
+    Gosu::Song.new('sounds/creep.wav')
   end
 
   def self.load_explosion_sound
-    Gosu::Sample.new('sounds/explosion1.ogg')
+    Gosu::Song.new('sounds/explosion1.ogg')
   end
 
   def self.load_lightning_sound
-    Gosu::Sample.new('sounds/electric.wav')
+    Gosu::Song.new('sounds/electric.wav')
   end
 
   def self.convert_matches_to_cells(matches, objects, level_manager)

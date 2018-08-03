@@ -66,6 +66,7 @@ class Main
 
     if @pause_value == 1 || @help_value == 1
       stop_bounce
+      stop_non_bounce_sounds
     end
 
     unless @sfx.empty?
@@ -466,9 +467,18 @@ class Main
     end
   end
 
+  def stop_non_bounce_sounds
+    @freed_sound.stop if @freed_sound.playing?
+    @explosion_sound.stop if @explosion_sound.playing?
+    @lightning_sound.stop if @lightning_sound.playing?
+  end
+
   def stop_bounce
     @swap_timer = Gosu.milliseconds
     @bounce_timer = 0
+
+    @treat_bounce_sound.stop if @treat_bounce_sound.playing?
+    @bounce_sound.stop if @bounce_sound.playing?
 
     if !@bouncing_objects.nil?
       if !@bouncing_objects.empty?
