@@ -90,7 +90,7 @@ module ShuffleHelper
     0.upto(height - 1) do |row|
       if !temp.include?(row)
         clear_rows += 1
-        p arr << row
+        arr << row
         if clear_rows == 1
           sum += 1
         end
