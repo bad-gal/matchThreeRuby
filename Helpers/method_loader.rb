@@ -223,11 +223,11 @@ module MethodLoader
   def self.identify_new_positions(graph, move_down, move_to, objects, cells)
     temp = []
 
-    graph.get_vacancies.reverse_each do |vacancy|
+    graph.load_vacancies.reverse_each do |vacancy|
       temp << vacancy
       cell = [vacancy[0], vacancy[1] - 1]
       while cell[1] >= 0
-        temp << cell.dup unless graph.get_obstacles.include?(cell)
+        temp << cell.dup unless graph.fetch_obstacles.include?(cell)
         change = cell[1] - 1
         cell[1] = change
       end
@@ -236,13 +236,13 @@ module MethodLoader
       cell = [vacancy[0], vacancy[1] - 1]
 
       while cell[1] >= 0
-        if !graph.get_vacancies.include?(cell) &&
-           !move_down.include?(cell) && !graph.get_obstacles.include?(cell)
+        if !graph.load_vacancies.include?(cell) &&
+           !move_down.include?(cell) && !graph.fetch_obstacles.include?(cell)
           move_down << cell.dup
           move_to << temp[m_index].dup
           m_index += 1
-        elsif !graph.get_vacancies.include?(cell) &&
-              !move_down.include?(cell) && graph.get_obstacles.include?(cell)
+        elsif !graph.load_vacancies.include?(cell) &&
+              !move_down.include?(cell) && graph.fetch_obstacles.include?(cell)
           break
         end
 
@@ -258,7 +258,7 @@ module MethodLoader
     blocking = []
     obstacle_cells = obstacles.map(&:cell)
     viable_objects.reverse_each do |obj|
-      blocked = obj[:path] - graph.get_vacancies
+      blocked = obj[:path] - graph.load_vacancies
       blocked.each do |bl|
         blocking << bl unless obstacle_cells.include?(bl)
       end
@@ -269,7 +269,7 @@ module MethodLoader
   def self.blocking_affect(affect, graph, obstacles)
     blocking = []
     obstacle_cells = obstacles.map(&:cell)
-    blocked = affect[:path] - graph.get_vacancies
+    blocked = affect[:path] - graph.load_vacancies
     blocked.each do |bl|
       blocking << bl unless obstacle_cells.include?(bl)
     end

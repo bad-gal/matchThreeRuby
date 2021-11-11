@@ -15,7 +15,7 @@ class Button < Image
   def draw
     @image.draw(@x, @y, 0)
 
-    @font.draw(
+    @font.draw_text(
       @text,
       @x + ((@image.width / 2) - (@font.text_width(@text) / 2)),
       @y + ((@image.height / 2) - (@font.height / 2)), 0, 1, 1,
