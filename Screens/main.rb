@@ -76,9 +76,9 @@ class Main
 
   def draw
     @bkgnd.draw(0, 0, 0)
-    @font.draw("Level: #{@level}", 10, 455, 0, 1, 1, Gosu::Color::YELLOW)
-    @font.draw("Moves: #{@level_manager.scores[:moves]}", 230, 5, 0, 1, 1, Gosu::Color::YELLOW)
-    @font.draw("Score: #{@level_manager.scores[:score]}", 10, 5, 0, 1, 1,
+    @font.draw_text("Level: #{@level}", 10, 455, 0, 1, 1, Gosu::Color::YELLOW)
+    @font.draw_text("Moves: #{@level_manager.scores[:moves]}", 230, 5, 0, 1, 1, Gosu::Color::YELLOW)
+    @font.draw_text("Score: #{@level_manager.scores[:score]}", 10, 5, 0, 1, 1,
                Gosu::Color::YELLOW)
 
     @tile_image.each do |tile|
@@ -185,11 +185,11 @@ class Main
     end
 
     unless vacant_cells.empty?
-      @graph.set_group_obstacles(vacant_cells)
-      @graph.set_group_invisibles(vacant_cells)
+      @graph.load_group_obstacles(vacant_cells)
+      @graph.load_group_invisible(vacant_cells)
     end
 
-    @graph.set_group_vacancies(@homeless_cells) unless @homeless_cells.nil?
+    @graph.load_group_vacancies(@homeless_cells) unless @homeless_cells.nil?
     reset_tile_obstacles
   end
 
@@ -224,7 +224,7 @@ class Main
                                  position.first, position.last, status, ol,
                                  obstacle_cells[i], true)
     end
-    @graph.set_group_obstacles(obstacle_cells)
+    @graph.load_group_obstacles(obstacle_cells)
   end
 
   def reset_tile_obstacles
@@ -235,7 +235,7 @@ class Main
     @obstacle_locations.each do |ol|
       obstacle_cells << GameHelper.find_cell_of_location(ol, @cells)
     end
-    @graph.set_group_obstacles(obstacle_cells)
+    @graph.load_group_obstacles(obstacle_cells)
   end
 
   def load_gui
@@ -351,8 +351,8 @@ class Main
         sp_cells << sp.cell
       end
 
-      @graph.set_group_vacancies(sp_cells)
-      @cell_vacancies = @graph.get_vacancies
+      @graph.load_group_vacancies(sp_cells)
+      @cell_vacancies = @graph.load_vacancies
 
       @special_objects.each do |sp|
         @matches.first << sp.location
@@ -585,7 +585,7 @@ class Main
     GameModule.remove_sweet_treat_from_matches(@match_details, @objects)
     match_cells = GameHelper.convert_matches_to_cells(@matches, @objects, @level_manager)
     @cell_vacancies = []
-    match_cells.each { |mc| @cell_vacancies << @graph.set_group_vacancies(mc) }
+    match_cells.each { |mc| @cell_vacancies << @graph.load_group_vacancies(mc) }
     @collapsed_match = @matches.flatten
 
     @matched_copy = GameModule.set_matched_objects(@collapsed_match, @objects)
@@ -764,7 +764,7 @@ class Main
 
   def add_new_objects
     if @counter.zero?
-      vacancies = @graph.get_vacancies
+      vacancies = @graph.load_vacancies
       @viable = GameHelper.viable_objects(vacancies, @graph, @map_width)
       return no_viable_objects if @viable.empty?
 
@@ -813,7 +813,7 @@ class Main
     end
 
     if @counter == 12
-      @viable = GameHelper.viable_objects2(@graph.get_vacancies, @graph, @map_width)
+      @viable = GameHelper.viable_objects2(@graph.load_vacancies, @graph, @map_width)
       @counter = 1
     end
   end

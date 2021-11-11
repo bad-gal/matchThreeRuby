@@ -21,7 +21,7 @@ module ShuffleHelper
     end
     sections.each{ |s| s.flatten!(1) }
 
-    obs = graph.get_obstacles
+    obs = graph.fetch_obstacles
     sections.each do |section|
       section.reverse_each do |sect|
         section.delete(sect) if obs.include?(sect)
@@ -65,7 +65,7 @@ module ShuffleHelper
   end
 
   def self.blocked_rows(objects, graph, width, height)
-    blockers = graph.get_obstacles
+    blockers = graph.fetch_obstacles
     list = []
 
     0.upto(height - 1) do |row|
@@ -107,7 +107,7 @@ module ShuffleHelper
   end
 
   def self.blocked_columns(objects, graph, width, height)
-    blockers = graph.get_obstacles
+    blockers = graph.fetch_obstacles
     list = []
 
     0.upto(width - 1) do |col|

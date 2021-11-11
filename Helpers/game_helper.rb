@@ -99,7 +99,7 @@ module GameHelper
   end
 
   def self.available_paths(graph, map_width)
-    vacancies = graph.get_vacancies
+    vacancies = graph.load_vacancies
     available_paths = []
     vacancies.each do |nv|
       available_paths << graph.find_start_when_finish_known(nv.first, nv.last, map_width)
@@ -145,7 +145,7 @@ module GameHelper
   end
 
   def self.set_new_vacancy_details(objects, homeless_objects, width, cells, collapsed_matches, graph)
-    new_vacancies = graph.get_vacancies
+    new_vacancies = graph.load_vacancies
     new_vacancy_details = []
 
     new_vacancies.each_with_index do |nv, i|
@@ -169,25 +169,39 @@ module GameHelper
   end
 
   def self.bounce_out_setup(matched_copy, effects)
-    unless matched_copy.empty?
-      matched_copy.each_with_index do |m, i|
-        direction = i % 3
-        case direction
-        when 0
-          path = Path.new.set_up_bounce_out_left(m.x, m.y)
-          m.path.concat path
-        when 1
-          path = Path.new.set_up_bounce_out_middle(m.x, m.y)
-          m.path.concat path
-        when 2
-          path = Path.new.set_up_bounce_out_right(m.x, m.y)
-          m.path.concat path
-        end
+    return if matched_copy.empty?
 
-        m.animate_path
-        effects << Animation.new('assets/muzzle_flash.png', 50, 50, 30, 1200, false, m.x, m.y)
+    matched_copy.each_with_index do |m, i|
+      direction = i % 3
+
+      case direction
+      when 0
+        path = Path.new.set_up_bounce_out_left(m.x, m.y)
+      when 1
+        path = Path.new.set_up_bounce_out_middle(m.x, m.y)
+      when 2
+        path = Path.new.set_up_bounce_out_right(m.x, m.y)
       end
+
+      m.path.concat path
+      m.animate_path
+      effects << Animation.new('assets/muzzle_flash.png', 50, 50, 30, 1200, false, m.x, m.y)
     end
+  end
+
+  def bounce_out_left(m)
+    path = Path.new.set_up_bounce_out_left(m.x, m.y)
+    m.path.concat path
+  end
+
+  def bounce_out_middle(m)
+    path = Path.new.set_up_bounce_out_middle(m.x, m.y)
+    m.path.concat path
+  end
+
+  def bounce_out_right(m)
+    path = Path.new.set_up_bounce_out_right(m.x, m.y)
+    m.path.concat path
   end
 
   def self.swap_check(urb_object1, urb_object2)
@@ -238,18 +252,18 @@ module GameHelper
     paths = []
     unless vacancy.last.zero?
       0.upto(map_width - 1) do |x|
-        paths << graph.shortest_path(x, 0, vacancy.first, vacancy.last)
+        paths << graph.shortest_path(x, 0, vacancy.first, vacancy.last, :down)
       end
 
       # element must end with the destination, otherwise delete path
       paths.reverse_each do |path|
-        paths.delete(path) unless graph.get_vacancies.include?(path.last)
+        paths.delete(path) unless graph.load_vacancies.include?(path.last)
       end
 
       # remove any paths that contain obstacles
       paths.reverse_each do |path|
         path.each do |pa|
-          paths.delete(path) if graph.get_obstacles.include?(pa)
+          paths.delete(path) if graph.fetch_obstacles.include?(pa)
         end
       end
     end
@@ -262,18 +276,20 @@ module GameHelper
     paths = []
     unless vacancy.last.zero?
       0.upto(map_width - 1) do |x|
-        paths << graph.shortest_path_no_occupants(x, 0, vacancy.first, vacancy.last)
+        # replaced shortest_path_no_occupants - we are not checking for neighbor.occupied as a result
+        # this might break the game
+        paths << graph.shortest_path(x, 0, vacancy.first, vacancy.last, :down)
       end
 
       # element must end with the destination, otherwise delete path
       paths.reverse_each do |path|
-        paths.delete(path) unless graph.get_vacancies.include?(path.last)
+        paths.delete(path) unless graph.load_vacancies.include?(path.last)
       end
 
       # remove any paths that contain obstacles
       paths.reverse_each do |path|
         path.each do |pa|
-          paths.delete(path) if graph.get_obstacles.include?(pa) #|| !graph.get_vacancies.include?(pa) # a change made here
+          paths.delete(path) if graph.fetch_obstacles.include?(pa) #|| !graph.get_vacancies.include?(pa) # a change made here
         end
       end
     end
@@ -297,7 +313,7 @@ module GameHelper
       if !path[i].nil?
         if !path[i].empty?
           viable << { vacancy: v, path: path[i] }
-        elsif (v[1]).zero? && !graph.get_obstacles.include?(v)
+        elsif (v[1]).zero? && !graph.fetch_obstacles.include?(v)
           viable << { vacancy: v, path: [v] }
         end
       end
@@ -326,7 +342,7 @@ module GameHelper
       if !path[i].nil?
         if !path[i].empty?
           viable << { vacancy: v, path: path[i] }
-        elsif (v[1]).zero? && !graph.get_obstacles.include?(v)
+        elsif (v[1]).zero? && !graph.fetch_obstacles.include?(v)
           viable << { vacancy: v, path: [v] }
         end
       end
@@ -342,7 +358,7 @@ module GameHelper
 
   def self.viable_exceptions(vacancies, graph)
     temp = []
-    invisibles = graph.get_invisibles
+    invisibles = graph.load_invisible
     vacancies.each do |vacancy|
       invisibles.each do |inv|
         arr = []
