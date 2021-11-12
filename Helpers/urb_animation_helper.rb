@@ -1,229 +1,66 @@
 require_relative 'game_module'
 
 module UrbAnimationHelper
-
-  #------------------------------------------------------
   # change urb based on type
-  #------------------------------------------------------
   def self.change(object, num)
-    case num
-    when 0
-      type = :rocker
-      filename = 'assets/rocker_anim.png'
-    when 1
-      type = :pac
-      filename = 'assets/pac_anim.png'
-    when 2
-      type = :pigtails
-      filename = 'assets/pigtails_anim.png'
-    when 3
-      type = :punk
-      filename = 'assets/punk_anim.png'
-    when 4
-      type = :nerd
-      filename = 'assets/nerd_anim.png'
-    when 5
-      type = :nerd_girl
-      filename = 'assets/nerd_girl_anim.png'
-    when 6
-      type = :baby
-      filename = 'assets/baby_anim.png'
-    when 7
-      type = :lady
-      filename = 'assets/lady_anim.png'
-    end
+    urb_type = { 0 => :rocker, 1 => :pac, 2 => :pigtails, 3 => :punk,
+                 4 => :nerd, 5 => :nerd_girl, 6 => :baby, 7 => :lady }
+
+    type = urb_type[num]
+    filename = "assets/#{type}_anim.png"
     object.change_image(filename)
     object.type = type
   end
 
-  #------------------------------------------------------
   # change urb animation to bounced image
-  #------------------------------------------------------
   def self.bounce_image(object)
-    case object.type
-    when :rocker
-      filename = 'assets/rocker_bounce.png'
-    when :pac
-      filename = 'assets/pac_bounce.png'
-    when :pigtails
-      filename = 'assets/pigtails_bounce.png'
-    when :punk
-      filename = 'assets/punk_bounce.png'
-    when :nerd
-      filename = 'assets/nerd_bounce.png'
-    when :nerd_girl
-      filename = 'assets/nerd_girl_bounce.png'
-    when :baby
-      filename = 'assets/baby_bounce.png'
-    when :lady
-      filename = 'assets/lady_bounce.png'
-    when :MINT_SWEET
-      filename = 'assets/mint_sweet_bounce.png'
-    when :PURPLE_SWEET
-      filename = 'assets/purple_sweet_bounce.png'
-    when :COOKIE
-      filename = 'assets/cookie_bounce.png'
-    when :GOBSTOPPER
-      filename = 'assets/gobstopper_bounce.png'
-    end
+    filename = "assets/#{object.type.downcase}_bounce.png"
     object.change_image(filename)
     object.add_frame_data(5, Settings::BOUNCE_DURATION, Settings::BOUNCE_FPS)
   end
 
-  #------------------------------------------------------
   # change urb animation file based on type, change frame rates
-  #------------------------------------------------------
   def self.regular_image(object)
-    case object.type
-    when :rocker
-      filename = 'assets/rocker_anim.png'
-    when :pac
-      filename = 'assets/pac_anim.png'
-    when :pigtails
-      filename = 'assets/pigtails_anim.png'
-    when :punk
-      filename = 'assets/punk_anim.png'
-    when :nerd
-      filename = 'assets/nerd_anim.png'
-    when :nerd_girl
-      filename = 'assets/nerd_girl_anim.png'
-    when :baby
-      filename = 'assets/baby_anim.png'
-    when :lady
-      filename = 'assets/lady_anim.png'
-    when :MINT_SWEET
-      filename = 'assets/mint_sweet.png'
-    when :PURPLE_SWEET
-      filename = 'assets/purple_sweet.png'
-    when :COOKIE
-      filename = 'assets/cookie.png'
-    when :GOBSTOPPER
-      filename = 'assets/gobstopper.png'
-    end
+    filename = "assets/#{object.type.downcase}_anim.png"
     object.change_image(filename)
     object.add_frame_data(5, Gosu.random(9999, 15_001).to_i, Settings::FPS)
   end
 
-  #------------------------------------------------------
   # change urb animation file based on type
-  #------------------------------------------------------
   def self.animation_data(type)
-    filename = ''
     w = 42
     h = 42
-    case type
-    when :pac
-      filename = 'assets/pac_anim.png'
-    when :lady
-      filename = 'assets/lady_anim.png'
-    when :punk
-      filename = 'assets/punk_anim.png'
-    when :baby
-      filename = 'assets/baby_anim.png'
-    when :nerd
-      filename = 'assets/nerd_anim.png'
-    when :rocker
-      filename = 'assets/rocker_anim.png'
-    when :nerd_girl
-      filename = 'assets/nerd_girl_anim.png'
-    when :pigtails
-      filename = 'assets/pigtails_anim.png'
-    when :MINT_SWEET
-      filename = 'assets/mint_sweet.png'
-    when :PURPLE_SWEET
-      filename = 'assets/purple_sweet.png'
-    when :GOBSTOPPER
-      filename = 'assets/gobstopper.png'
-    when :COOKIE
-      filename = 'assets/cookie.png'
-    end
+    filename = "assets/#{type.downcase}_anim.png"
     [filename, w, h]
   end
 
-  #------------------------------------------------------
   # change urb animation file based on number
-  #------------------------------------------------------
   def self.urb_file_type(number)
-    case number
-    when 0
-      file = 'assets/rocker_anim.png'
-      type = :rocker
-    when 1
-      file = 'assets/pac_anim.png'
-      type = :pac
-    when 2
-      type = :pigtails
-      file = 'assets/pigtails_anim.png'
-    when 3
-      type = :punk
-      file = 'assets/punk_anim.png'
-    when 4
-      type = :nerd
-      file = 'assets/nerd_anim.png'
-    when 5
-      type = :nerd_girl
-      file = 'assets/nerd_girl_anim.png'
-    when 6
-      type = :baby
-      file = 'assets/baby_anim.png'
-    when 7
-      type = :lady
-      file = 'assets/lady_anim.png'
-    when 10
-      type = :MINT_SWEET
-      file = 'assets/mint_sweet.png'
-    when 11
-      type = :PURPLE_SWEET
-      file = 'assets/purple_sweet.png'
-    when 12
-      type = :COOKIE
-      file = 'assets/cookie.png'
-    when 13
-      type = :GOBSTOPPER
-      file = 'assets/gobstopper.png'
-    end
+    urb_type = { 0 => :rocker, 1 => :pac, 2 => :pigtails, 3 => :punk,
+                 4 => :nerd, 5 => :nerd_girl, 6 => :baby, 7 => :lady,
+                 10 => :MINT_SWEET, 11 => :PURPLE_SWEET, 12 => :COOKIE,
+                 13 => :GOBSTOPPER
+    }
+    type = urb_type[number]
+    file = "assets/#{type.downcase}_anim.png"
     { file: file, type: type }
   end
 
-  #------------------------------------------------------
   # sweet treat animation files
-  #------------------------------------------------------
   def self.sweet_transformation(object)
-    case object.type
-    when :MINT_SWEET
-      filename = 'assets/mint_sweet.png'
-    when :PURPLE_SWEET
-      filename = 'assets/purple_sweet.png'
-    when :GOBSTOPPER
-      filename = 'assets/gobstopper.png'
-    when :COOKIE
-      filename = 'assets/cookie.png'
-    end
+    filename = "assets/#{object.type.downcase}_anim.png"
     object.change_image(filename)
   end
 
-  #------------------------------------------------------
   # fade animation for sweet treats
-  #------------------------------------------------------
   def self.sweet_fade(object)
-    case object.type
-    when :MINT_SWEET
-      filename = 'assets/mint_sweet_fade.png'
-    when :PURPLE_SWEET
-      filename = 'assets/purple_sweet_fade.png'
-    when :GOBSTOPPER
-      filename = 'assets/gobstopper_fade.png'
-    when :COOKIE
-      filename = 'assets/cookie_fade.png'
-    end
+    filename = "assets/#{object.type.downcase}_fade.png"
     object.add_frame_data(5, Settings::BOUNCE_DURATION, Settings::BOUNCE_FPS)
     object.change_image_and_loop(filename, false)
   end
 
-  #------------------------------------------------------
   # assign the right method depending on the sweet treats
-  #------------------------------------------------------
-  def self.special_treat(object1, object2, objects, width, height, obstacles)
+  def self.special_treat(object1, object2, objects, width, _height, obstacles)
     result = []
     arr = [object1, object2]
 
@@ -328,9 +165,7 @@ module UrbAnimationHelper
     end
   end
 
-  #--------------------------------------------------------------------
   # identify the objects that need to bounce out from stripe sweet swap
-  #--------------------------------------------------------------------
   def self.basic_stripe_sweet(object, objects, width, obstacles)
     if object.type == :MINT_SWEET # horizontal
       loc = object.location / width
@@ -344,9 +179,7 @@ module UrbAnimationHelper
     matched_details
   end
 
-  #--------------------------------------------------------------
   # identify the objects that need to bounce out from cookie swap
-  #--------------------------------------------------------------
   def self.basic_cookie(urb, objects, obstacles)
     matches = objects.find_all{ |obj| obj.type == urb.type }.map{ |o| o.location }
     matched_details = [{ matches: matches, shape: :LINE, intersects: nil, special_type: nil }]
@@ -354,9 +187,7 @@ module UrbAnimationHelper
     matched_details
   end
 
-  #------------------------------------------------------------------
   # identify the objects that need to bounce out from gobstopper swap
-  #------------------------------------------------------------------
   def self.basic_gobstopper(object1, object2, width, objects, obstacles)
     direction = (object1.location - object2.location).abs
     matches = bomb_matrix(object1, object2, direction, width, objects, obstacles)
@@ -365,9 +196,7 @@ module UrbAnimationHelper
     matched_details
   end
 
-  #------------------------------------------------------------------
   # identify the objects that need to bounce out from double stripe sweet
-  #------------------------------------------------------------------
   def self.double_stripe_sweet(object1, object2, objects, width, obstacles)
     matches = []
 
@@ -383,9 +212,7 @@ module UrbAnimationHelper
     matched_details
   end
 
-  #------------------------------------------------------------------
   # identify the objects that need to bounce out from double cookie
-  #------------------------------------------------------------------
   def self.double_cookie(object1, object2, objects, obstacles)
     matches = objects.find_all{ |obj| ![object1.location, object2.location].include?(obj.location) }.map{ |o| o.location }
     matched_details = [{ matches: matches, shape: :LINE, intersects: nil, special_type: nil }]
@@ -393,9 +220,7 @@ module UrbAnimationHelper
     matched_details
   end
 
-  #------------------------------------------------------------------
   # identify the objects that need to bounce out from sweet gobstopper
-  #------------------------------------------------------------------
   def self.sweet_gobstopper(object1, object2, width, objects, obstacles)
     matches = []
     [object1, object2].each do |object|
@@ -415,9 +240,7 @@ module UrbAnimationHelper
     matched_details
   end
 
-  #------------------------------------------------------------------
   # identify the objects that need to bounce out from sweet cookie
-  #------------------------------------------------------------------
   def self.sweet_cookie(object1, object2, objects, obstacles)
     urb = objects.find_all{ |urb| !Settings::SWEET_TREATS.include?(urb.type) }.sample
     collective = objects.find_all{ |o| o.type == urb.type }
@@ -428,9 +251,7 @@ module UrbAnimationHelper
     collective
   end
 
-  #------------------------------------------------------------------
   # transform to a sweet treat
-  #------------------------------------------------------------------
   def self.cookie_transformation(list, type)
     list.each do |l|
       l.type = type
@@ -438,9 +259,7 @@ module UrbAnimationHelper
     end
   end
 
-  #------------------------------------------------------------------
   # identify the objects that need to bounce out from cookie gobstopper
-  #------------------------------------------------------------------
   def self.cookie_gobstopper(object1, object2, objects, obstacles)
     urb1 = objects.find_all{ |urb| !Settings::SWEET_TREATS.include?(urb.type) }.sample
     urb2 = objects.find_all{ |urb| !Settings::SWEET_TREATS.include?(urb.type) && urb.type != urb1.type }.sample
@@ -457,11 +276,8 @@ module UrbAnimationHelper
     matched_details
   end
 
-  #------------------------------------------------------------------
-  # collect a list of valid locations to bomb 4x3 grid
-  # or 3x4 grid depending on direction
-  #------------------------------------------------------------------
-  def self.bomb_matrix(object1, object2, direction, width, objects, obstacles)
+  # collect a list of valid locations to bomb 4x3 grid or 3x4 grid depending on direction
+  def self.bomb_matrix(object1, object2, direction, width, objects, _obstacles)
     arr = []
 
     if object1.location > object2.location
@@ -472,19 +288,18 @@ module UrbAnimationHelper
       l2 = object2.location
     end
 
-    if direction == 1
+    case direction
+    when 1
       arr << matrix_horizontal_left(l1, width, objects)
       arr << matrix_horizontal_right(l2, width, objects)
-    elsif direction == width
+    when width
       arr << matrix_vertical_left(l1, width, objects)
       arr << matrix_vertical_right(l2, width, objects)
     end
     arr.flatten.uniq.sort
   end
 
-  #------------------------------------------------------------------
   # horizontal left list of max 2 x 3 locations that form the bomb matrix
-  #------------------------------------------------------------------
   def self.matrix_horizontal_left(l1, width, objects)
     arr = []
     arr << l1
@@ -496,9 +311,7 @@ module UrbAnimationHelper
     arr
   end
 
-  #------------------------------------------------------------------
   # horizontal right list of max 2 x 3 locations that form the bomb matrix
-  #------------------------------------------------------------------
   def self.matrix_horizontal_right(l2, width, objects)
     arr = []
     arr << l2
@@ -510,9 +323,7 @@ module UrbAnimationHelper
     arr
   end
 
-  #------------------------------------------------------------------
   # vertical left list of max 2 x 3 locations that form the bomb matrix
-  #------------------------------------------------------------------
   def self.matrix_vertical_left(l1, width, objects)
     arr = []
     arr << l1
@@ -524,9 +335,7 @@ module UrbAnimationHelper
     arr
   end
 
-  #------------------------------------------------------------------
   # vertical right list of max 2 x 3 locations that form the bomb matrix
-  #------------------------------------------------------------------
   def self.matrix_vertical_right(l2, width, objects)
     arr = []
     arr << l2
@@ -538,37 +347,29 @@ module UrbAnimationHelper
     arr
   end
 
-  #----------------------------------------------------------
   # calculate the purple sweet special effects
-  #----------------------------------------------------------
   def self.vertical_effects(object)
     x = object.x
     y = object.y + 31
     fps = Settings::FPS
     duration = 5000
-    looped = false
     frames = 2
     sweet_fade(object)
     [SpecialFX.new('assets/lightning2r.png', x, y, fps, duration, frames, 2, object.type)]
   end
 
-  #----------------------------------------------------------
   # calculate the mint sweet special effects
-  #----------------------------------------------------------
   def self.horizontal_effects(object)
     x = object.x + 21
     y = object.y + 42
     fps = Settings::FPS
     duration = 5000
-    looped = false
     frames = 2
     sweet_fade(object)
     [SpecialFX.new('assets/lightning2r.png', x, y, fps, duration, frames, 2, object.type)]
   end
 
-  #----------------------------------------------------------
   # calculate the cookie special effects
-  #----------------------------------------------------------
   def self.cookie_effects(object, match_locations, objects)
     positions = []
     match_locations.each do |ml|
@@ -579,21 +380,16 @@ module UrbAnimationHelper
     y = object.y + 21
     fps = Settings::FPS
     duration = 5000
-    looped = false
     frames = 2
     sweet_fade(object)
     [SpecialFX.new('assets/lightning2r.png', x, y, fps, duration, frames, match_locations.size, object.type, positions)]
   end
 
-
-  #----------------------------------------------------------
   # position small bombs
-  #----------------------------------------------------------
-  def self.mini_bomber(object, match_locations, objects)
+  def self.mini_bomber(_object, match_locations, objects)
     images = []
     fps = Settings::FPS
     duration = 5000
-    looped = false
     frames = 4
     match_locations.each do |ml|
       position = objects.find{ |o| o.location == ml }
@@ -602,9 +398,7 @@ module UrbAnimationHelper
     images
   end
 
-  #----------------------------------------------------------
   # calculate the gobstopper special effects
-  #----------------------------------------------------------
   def self.bomb_effects(object)
     [SpecialFX.new('assets/explosion.png', object.x, object.y, Settings::BOUNCE_FPS, 2000, 16, 1, object.type)]
   end

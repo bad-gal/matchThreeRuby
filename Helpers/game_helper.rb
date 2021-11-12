@@ -42,6 +42,7 @@ module GameHelper
       matched.each do |m|
         found = obstacles.find { |o| o.location == m }
         next if found.nil?
+
         if found.counter <= 0
           graph.set_obstacle(found.cell.first, found.cell.last, false)
           level_manager.add_obstacle_score
@@ -83,6 +84,7 @@ module GameHelper
 
   def self.find_x_y_value_of_cell(cell, cells)
     return [] if cell.empty?
+
     node = cells.find { |c| c[:cell] == cell }
     node[:position]
   end
@@ -107,7 +109,7 @@ module GameHelper
     available_paths
   end
 
-  def self.return_matches_from_hash_in_order(match_details)
+  def self.matches_from_hash_in_order(match_details)
     match_temp = []
     match_details.each do |md|
       match_temp << md[:matches]
@@ -220,20 +222,21 @@ module GameHelper
       complete += 1 if moveable[0].y == pos[1]
     end
 
-    if complete == moveable_urbs.size
-      moveable_urbs.each do |urb|
-        graph.set_vacancy(urb[0].cell.first, urb[0].cell.last, false)
-        graph.set_vacancy(urb[2].first, urb[2].last, true)
-        urb[0].change_cell(urb[2])
-        urb[0].location = find_location_of_cell(urb[2], cells)
-        urb[0].clear_path
-      end
-      return true
+    return false unless complete == moveable_urbs.size
+
+    moveable_urbs.each do |urb|
+      graph.set_vacancy(urb[0].cell.first, urb[0].cell.last, false)
+      graph.set_vacancy(urb[2].first, urb[2].last, true)
+      urb[0].change_cell(urb[2])
+      urb[0].location = find_location_of_cell(urb[2], cells)
+      urb[0].clear_path
     end
+    true
   end
 
   def self.set_move_down_path(move_down, move_to, objects, cells)
     raise RunTimeError, 'main.rb: set_move_down_path' unless move_down.size == move_to.size
+
     moveable_urbs = []
     move_down.each_with_index do |md, i|
       urb = objects.find { |o| o.cell == md }
@@ -244,7 +247,6 @@ module GameHelper
         moveable_urbs << [urb, pos, move_to[i]]
       end
     end
-
     moveable_urbs
   end
 
@@ -256,14 +258,14 @@ module GameHelper
       end
 
       # element must end with the destination, otherwise delete path
-      paths.reverse_each do |path|
-        paths.delete(path) unless graph.load_vacancies.include?(path.last)
-      end
-
       # remove any paths that contain obstacles
       paths.reverse_each do |path|
-        path.each do |pa|
-          paths.delete(path) if graph.fetch_obstacles.include?(pa)
+        if graph.load_vacancies.include?(path.last)
+          path.each do |pa|
+            paths.delete(path) if graph.fetch_obstacles.include?(pa)
+          end
+        else
+          paths.delete(path)
         end
       end
     end
@@ -272,51 +274,26 @@ module GameHelper
     paths.first
   end
 
-  def self.most_suitable_path2(vacancy, graph, map_width)
-    paths = []
-    unless vacancy.last.zero?
-      0.upto(map_width - 1) do |x|
-        # replaced shortest_path_no_occupants - we are not checking for neighbor.occupied as a result
-        # this might break the game
-        paths << graph.shortest_path(x, 0, vacancy.first, vacancy.last, :down)
-      end
-
-      # element must end with the destination, otherwise delete path
-      paths.reverse_each do |path|
-        paths.delete(path) unless graph.load_vacancies.include?(path.last)
-      end
-
-      # remove any paths that contain obstacles
-      paths.reverse_each do |path|
-        path.each do |pa|
-          paths.delete(path) if graph.fetch_obstacles.include?(pa) #|| !graph.get_vacancies.include?(pa) # a change made here
-        end
-      end
-    end
-
-    paths.sort_by!(&:length) if paths.size > 1
-    paths.first
-  end
-
-  def self.viable_objects2(vacancies, graph, map_width)
+  def self.list_vacancies(vacancies, graph, map_width)
     path = []
-    vacancies.reverse_each do |v|
+    vacancies.each do |v|
       path << if v.last.zero?
                 []
               else
-                most_suitable_path2(v, graph, map_width)
+                most_suitable_path(v, graph, map_width)
               end
     end
+    path
+  end
+
+  def self.viable_objects2(vacancies, graph, map_width)
+    path = list_vacancies(vacancies, graph, map_width)
 
     viable = []
     vacancies.reverse.each_with_index do |v, i|
-      if !path[i].nil?
-        if !path[i].empty?
-          viable << { vacancy: v, path: path[i] }
-        elsif (v[1]).zero? && !graph.fetch_obstacles.include?(v)
-          viable << { vacancy: v, path: [v] }
-        end
-      end
+      next if path[i].nil?
+
+      viable << viable_path(v, path[i], graph)
     end
 
     # must do check if column is removed and has invisible cells above
@@ -327,25 +304,22 @@ module GameHelper
     viable
   end
 
-  def self.viable_objects(vacancies, graph, map_width)
-    path = []
-    vacancies.each do |v|
-      path << if v.last.zero?
-                []
-              else
-                most_suitable_path(v, graph, map_width)
-              end
+  def self.viable_path(vacancy, path_point, graph)
+    if !path_point.empty?
+      { vacancy: vacancy, path: path_point }
+    elsif (vacancy[1]).zero? && !graph.fetch_obstacles.include?(vacancy)
+      { vacancy: vacancy, path: [vacancy] }
     end
+  end
+
+  def self.viable_objects(vacancies, graph, map_width)
+    path = list_vacancies(vacancies, graph, map_width)
 
     viable = []
     vacancies.each_with_index do |v, i|
-      if !path[i].nil?
-        if !path[i].empty?
-          viable << { vacancy: v, path: path[i] }
-        elsif (v[1]).zero? && !graph.fetch_obstacles.include?(v)
-          viable << { vacancy: v, path: [v] }
-        end
-      end
+      next if path[i].nil?
+
+      viable << viable_path(v, path[i], graph)
     end
 
     # must do check if column is removed and has invisible cells above
@@ -365,7 +339,7 @@ module GameHelper
         inv.last.downto(0) do |i|
           arr << [inv.first, i]
         end
-        if (invisibles & arr) == arr #arr is a subset of invisibles
+        if (invisibles & arr) == arr
           temp << { vacancy: vacancy, path: [vacancy] } if vacancy.first == inv.first && inv.last < vacancy.last
         end
       end

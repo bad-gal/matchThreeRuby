@@ -28,19 +28,20 @@ class Animation
 
   def update
     return if Gosu.milliseconds < (@frame_ticker + @frame_period)
+
     @frame_ticker = Gosu.milliseconds
     @current_frame += 1
 
-    case @looped
-    when true
+    if @looped
       @current_frame = 0 if @current_frame >= @frames
-    when false
+    else
       @animation_finished = true if @current_frame >= @frames
     end
   end
 
   def draw
     return if @animation_finished
+
     image = @image_array[@current_frame]
     image.draw(@x, @y, 0)
   end

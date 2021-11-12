@@ -580,9 +580,9 @@ class Main
   end
 
   def generate_match_data
-    @matches = GameHelper.return_matches_from_hash_in_order(@match_details)
+    @matches = GameHelper.matches_from_hash_in_order(@match_details)
     GameHelper.remove_broken_obstacles(@matches, @obstacles, @graph, @level_manager)
-    GameModule.remove_sweet_treat_from_matches(@match_details, @objects)
+    GameModule.remove_sweet_treat(@match_details, @objects)
     match_cells = GameHelper.convert_matches_to_cells(@matches, @objects, @level_manager)
     @cell_vacancies = []
     match_cells.each { |mc| @cell_vacancies << @graph.load_group_vacancies(mc) }
