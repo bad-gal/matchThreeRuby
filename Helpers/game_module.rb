@@ -3,31 +3,27 @@ require_relative 'urb_animation_helper'
 require_relative 'settings'
 
 module GameModule
-
   def self.find_automatic_matches(objects, width, map, obstacles)
     matched_details = []
 
     objects.each do |object|
       element = object.location
-      unless object.off_screen
-        temp = combine_matches(objects, element, width, map, obstacles, nil)
+      next if object.off_screen
 
-        if !temp.nil? && !matched_details.include?(temp)
-          matched_details << temp
-        end
-      end
+      temp = combine_matches(objects, element, width, map, obstacles, nil)
+      matched_details << temp if !temp.nil? && !matched_details.include?(temp)
     end
 
     matched_details.each_with_index do |match1, i|
       matched_details.each_with_index do |match2, j|
-        if i != j
-          if (match1[:matches] - match2[:matches]).empty? ||
-             (match2[:matches] - match1[:matches]).empty?
-            if match1[:matches].size >= match2[:matches].size
-              matched_details.delete(match2)
-            else
-              matched_details.delete(match1)
-            end
+        next if i == j
+
+        if (match1[:matches] - match2[:matches]).empty? ||
+           (match2[:matches] - match1[:matches]).empty?
+          if match1[:matches].size >= match2[:matches].size
+            matched_details.delete(match2)
+          else
+            matched_details.delete(match1)
           end
         end
       end
@@ -90,34 +86,30 @@ module GameModule
 
     matches = matches.uniq.sort.reverse.flatten
     shape = get_shape(matches, width, user_selection)
-    details = { matches: matches, shape: shape, intersects: intersected_element(matches, user_selection), special_type: set_special_type(shape) }
+    { matches: matches, shape: shape, intersects: intersected_element(matches, user_selection), special_type: load_special_type(shape) }
   end
 
   def self.intersected_element(matches, user_selection)
     if !user_selection.nil? && matches.size == 4
-      intersecting_elements = matches.find { |el| user_selection.include?(el) }
+      matches.find { |el| user_selection.include?(el) }
     elsif user_selection.nil? && matches.size == 4
-      intersecting_elements = matches[1]
+      matches[1]
     elsif matches.size > 4
       count = matches.select { |el| matches.count(el) > 1 }.uniq.join.to_i
       return count unless count.zero?
+
       return matches[2]
       # intersecting_elements = matches.size > 4 ? matches.select { |el| matches.count(el) > 1 }.uniq.join.to_i :
     end
-    intersecting_elements
   end
 
-  def self.set_special_type(shape)
-    case shape
-    when :LINE_OF_FOUR_HORIZONTAL
-      :MINT_SWEET
-    when :LINE_OF_FOUR_VERTICAL
-      :PURPLE_SWEET
-    when :LINE_OF_FIVE_OR_MORE
-      :COOKIE
-    when :L_OR_T_SHAPE
-      :GOBSTOPPER
-    end
+  def self.load_special_type(shape)
+    treat_shape = { LINE_OF_FOUR_HORIZONTAL: :MINT_SWEET,
+                    LINE_OF_FOUR_VERTICAL: :PURPLE_SWEET,
+                    LINE_OF_FIVE_OR_MORE: :COOKIE,
+                    L_OR_T_SHAPE: :GOBSTOPPER
+    }
+    treat_shape[shape]
   end
 
   def self.find_matches_by_column(objects, element, width, map, obstacles)
@@ -261,20 +253,20 @@ module GameModule
 
   # any matches that result in sweet treats should be
   # removed from bouncing out of tilemap
-  def self.remove_sweet_treat_from_matches(match_details, objects)
+  def self.remove_sweet_treat(match_details, objects)
     removable = []
 
     match_details.each do |details|
-      unless details[:shape] == :LINE
-        object = objects.find { |o| o.location == details[:intersects] && !o.off_screen }
-        details[:matches].delete(object.location)
+      next if details[:shape] == :LINE
 
-        unless object.nil?
-          object.type = details[:special_type]
-          UrbAnimationHelper.sweet_transformation(object)
-          removable << object
-        end
-      end
+      object = objects.find { |o| o.location == details[:intersects] && !o.off_screen }
+      details[:matches].delete(object.location)
+
+      next if object.nil?
+
+      object.type = details[:special_type]
+      UrbAnimationHelper.sweet_transformation(object)
+      removable << object
     end
     removable
   end
@@ -288,24 +280,25 @@ module GameModule
     end
 
     return if obstacles.empty?
+
     obstacles.each do |obs|
       next unless [Settings::OBSTACLE_STATE.find_index(:GLASS), Settings::OBSTACLE_STATE.find_index(:WOOD), Settings::OBSTACLE_STATE.find_index(:CEMENT)].any? { |obstacle| obstacle == obs.status }
-      if matches.include? obs.location
-        obs.counter -= 1
-        obs.change(obs.status)
-        unless obs.counter.zero?
-          # remove match element from array
-          found = match_details.find { |match| match[:matches].include?(obs.location) }
-          unless found.nil?
-            found[:matches].delete(obs.location)
-          end
-        end
-      end
+
+      next unless matches.include? obs.location
+
+      obs.counter -= 1
+      obs.change(obs.status)
+      next if obs.counter.zero?
+
+      # remove match element from array
+      found = match_details.find { |match| match[:matches].include?(obs.location) }
+      found[:matches].delete(obs.location) unless found.nil?
     end
   end
 
   def self.delete_obstacles(obstacles, objects, obstacle_locations)
     return if obstacles.empty?
+
     obstacles.delete_if do |o|
       if o.animation_finished
         urb = objects.find { |u| u.location == o.location }
