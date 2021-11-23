@@ -784,11 +784,11 @@ class Main
       end
 
     elsif @counter == 1
-        MethodLoader.move_new_objects(@returning_objects, @viable, @urbs_in_level, @graph, @cells)
-        @counter = 2
+      MethodLoader.move_new_objects(@returning_objects, @viable, @urbs_in_level, @graph, @cells)
+      @counter = 2
 
     elsif @counter == 2
-      complete = GameHelper.objects_in_place(@objects) #@returning_objects
+      complete = GameHelper.objects_in_place(@objects)
       @counter = 3 if complete == @objects.size
 
     elsif @counter == 3

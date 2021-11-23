@@ -179,7 +179,7 @@ module MethodLoader
       start = [objects[i].x, objects[i].y]
       v[:path].each_with_index do |path, num|
         position = GameHelper.find_x_y_value_of_cell(path, cells)
-        next unless position.empty?
+        next if position.empty?
 
         # change x position of off screen object to match entry-point
         if num.zero?
